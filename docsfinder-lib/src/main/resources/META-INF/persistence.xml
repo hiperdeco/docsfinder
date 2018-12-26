@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+	version="2.0">
+	
+	<persistence-unit name="docsfinder"	transaction-type="RESOURCE_LOCAL">
+	<!-- 
+	<persistence-unit name="docsfinder"	transaction-type="JTA">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<jta-data-source>java:/docsfinderDS</jta-data-source>
+		 -->
+		 
+		 
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<jta-data-source>java:/docsfinderDSH2</jta-data-source>
+		
+		<class>io.github.hiperdeco.docsfinder.entity.Configuration</class>
+		<class>io.github.hiperdeco.docsfinder.entity.Repository</class>
+		<!-- <class>io.github.hiperdeco.docsfinder.entity.RepositoryFile</class>
+		<class>io.github.hiperdeco.docsfinder.entity.RepositoryFileIndex</class> -->
+		<class>io.github.hiperdeco.docsfinder.entity.User</class>
+		<class>io.github.hiperdeco.docsfinder.entity.UserRepository</class>
+			
+		<properties>
+			<!-- 
+			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+			 <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/docsfinder" />
+			 <property name="javax.persistence.jdbc.user" value="docsfinder" />
+			<property name="javax.persistence.jdbc.password" value="docsfinder" /> 
+			-->
+		
+			<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+			<property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
+			<property name="hibernate.connection.charSet" value="UTF-8"/>
+			<property name="hibernate.validator.apply_to_ddl" value="false"/>
+			<property name="hibernate.validator.autoregister_listeners" value="false"/>
+			<property name="hibernate.show_sql" value="true"/>
+			<property name="hibernate.hbm2ddl.auto" value="update"/>
+			
+			
+		</properties>
+		
+		
+		
+	</persistence-unit>
+	
+</persistence>
+

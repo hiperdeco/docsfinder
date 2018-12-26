@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.hiperdeco</groupId>
+  <artifactId>docsfinder</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+   <name>docsfinder</name>
+<build>
+<plugins>
+<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.0</version> 
+        </plugin>
+	<plugin>
+		<artifactId>maven-antrun-plugin</artifactId>
+		<executions>
+			<execution>
+			<phase>deploy</phase>
+			<configuration>
+			<tasks>
+			<!--
+			Place any Ant task here. You can add anything
+			you can add between <target> and </target> in a
+			build.xml.
+			-->
+			<copy file="docsfinder-ear/target/docsfinder-ear.ear" tofile="deploy/docsfinder.ear"/>
+			</tasks>
+			</configuration>
+			<goals>
+			<goal>run</goal>
+			</goals>
+			</execution>
+		</executions>
+	</plugin>
+        </plugins>
+</build>
+  <modules>
+    <module>docsfinder-lib</module>
+    <module>docsfinder-web</module>
+   <!-- <module>docsfinder-ejb</module> -->
+    <module>docsfinder-ear</module>
+  </modules>
+  
+</project>

@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="TemplateAdmin.xhtml">
+
+	<ui:define name="content">
+	   <h:form id="frm" action="Configuration.xhtml">
+			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
+				showDetail="true" />
+			
+			<h:panelGrid id="pnlEdit" columns="3">
+
+				<p:outputLabel for="id" value="#{configbundle['id.label']}" rendered="#{ConfigurationMB.editing}"/>
+				<h:outputText id="id" value="#{ConfigurationMB.object.id}"  rendered="#{ConfigurationMB.editing}" />
+				<p:message for="id" showSummary="false"  rendered="#{ConfigurationMB.editing}" />
+
+				<p:outputLabel for="keyname" value="#{configbundle['keyname.label']}:" />
+				<p:inputText id="keyname" required="true" disabled="#{!ConfigurationMB.editing}"
+					requiredMessage="#{configbundle['keyname.requiredMessage']}"
+					value="#{ConfigurationMB.object.key}"  />
+				<p:message for="keyname" />	
+				
+				<p:outputLabel for="keyvalue" value="#{configbundle['keyvalue.label']}:" />
+				<p:inputText id="keyvalue" required="true"
+					requiredMessage="#{configbundle['keyvalue.requiredMessage']}"
+					value="#{ConfigurationMB.object.value}"  />
+				<p:message for="keyvalue" />	
+				
+				<p:outputLabel for="repo" value="#{configbundle['repository.label']}:" />
+				<p:selectOneMenu id="repo" required="true" requiredMessage="#{configbundle['repository.requiredMessage']}"
+					value="#{ConfigurationMB.object.repositoryId}" disabled="#{!ConfigurationMB.editing}">
+					<f:selectItem noSelectionOption="true"/>
+				  <f:selectItems value="#{ConfigurationMB.repositoryList}" var="item" itemLabel="#{item.description}"
+				  itemValue="#{item.id}"/>
+				</p:selectOneMenu>
+				<p:message for="repo" />		
+
+			</h:panelGrid>
+			<p:commandButton id="insert" value="#{configbundle['insert.button']}" disabled="#{ConfigurationMB.editing}"
+				update="frm list" action="#{ConfigurationMB.create}" />
+			<p:commandButton id="update" value="#{configbundle['update.button']}" disabled="#{!ConfigurationMB.editing}"
+				update="frm list" action="#{ConfigurationMB.update}" />
+				
+			<p:commandButton id="clear" value="#{configbundle['clear.button']}" immediate="true" process="@this"
+				update="frm" action="#{ConfigurationMB.clear}" />		
+
+		</h:form>
+		
+		<p:dataTable id="list" value="#{ConfigurationMB.list}" var="item"
+			scrollHeight="250" scrollable="true" selectionMode="single"
+			rowKey="#{item.id}">
+			<f:facet name="header">
+				<h:outputText value="#{configbundle['list.title']}" />
+			</f:facet>
+			<p:ajax event="rowSelect" listener="#{ConfigurationMB.onRowSelect}"
+				update=":frm" />
+			<p:ajax event="rowUnselect" listener="#{ConfigurationMB.onRowUnSelect}"
+				update=":frm" />
+			<p:column headerText="#{configbundle['id.label']}">
+				<h:outputText value="#{item.id}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{configbundle['keyname.label']}">
+				<h:outputText value="#{item.key}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{configbundle['keyvalue.label']}">
+				<h:outputText value="#{item.value}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{configbundle['action.label']}">
+				<p:commandButton action="#{ConfigurationMB.delete(item)}" 
+				immediate="true" process="@this" value="X" update="frm list"/>
+			</p:column>
+			<f:facet name="footer">
+				<h:outputText value="#{configbundle['rows.label']}: #{ConfigurationMB.listSize}" />
+			</f:facet>
+		</p:dataTable>
+	   
+	</ui:define>
+
+</ui:composition>
+</html>

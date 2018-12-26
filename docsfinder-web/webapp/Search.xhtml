@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="Template.xhtml">
+
+	<ui:define name="content">
+		<style type="text/css">
+			ul.striped-list {
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+				max-width: 200px;
+			}
+			
+			ul.striped-list>li {
+				border-bottom: 1px solid rgb(221, 221, 221);
+				padding: 6px;
+			}
+			
+			ul.striped-list>li:nth-of-type(odd) {
+				background-color: #e9e9f9;
+			}
+			
+			ul.striped-list>li:last-child {
+				border-bottom: none;
+			}
+
+		</style>
+		<script type="text/javascript">
+			//<![CDATA[
+			function start() {
+				PF('statusDialog').show();
+			}
+
+			function stop() {
+				PF('statusDialog').hide();
+			}
+			//]]>
+		</script>
+		<h:form id="frm" action="Search.xhtml">
+			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
+				showDetail="true" />
+
+			<h:panelGrid id="pnlSearch" columns="3">
+
+				<p:outputLabel for="repo"
+					value="#{searchbundle['repository.label']}:" />
+				<p:selectOneMenu id="repo" required="true"
+					requiredMessage="#{searchbundle['repository.requiredMessage']}"
+					value="#{SearchMB.repositoryId}">
+					<f:selectItem noSelectionOption="true" />
+					<f:selectItems value="#{SearchMB.repositoryList}" var="item"
+						itemLabel="#{item.description}" itemValue="#{item.id}" />
+				</p:selectOneMenu>
+				<p:message for="repo" />
+
+				<p:outputLabel for="term" value="#{searchbundle['term.label']}:" />
+				<p:inputText id="term" required="true"
+					requiredMessage="#{searchbundle['term.requiredMessage']}"
+					value="#{SearchMB.form.term}" />
+				<p:message for="term" />
+
+				<p:outputLabel for="findPath"
+					value="#{searchbundle['findPath.label']}" />
+				<p:selectBooleanCheckbox id="findPath" value="#{SearchMB.form.findPath}" />
+				<p:message for="findPath" />
+
+			</h:panelGrid>
+			<p:remoteCommand name="findFiles" action="#{SearchMB.findFiles}" 
+				update="listFilesFound" />
+			<p:remoteCommand name="find" action="#{SearchMB.find}" 
+				update="listFilesFound" />
+			<p:commandButton id="search" value="#{searchbundle['search.button']}"
+				update="frm" onclick="findFiles();find();" />
+
+			<p:commandButton id="clear" value="#{searchbundle['clear.button']}"
+				immediate="true" process="@this" update="frm"
+				action="#{SearchMB.clear}" />
+
+			<p:dataTable id="listFilesFound" value="#{SearchMB.filesFound}" rendered="#{SearchMB.listFilesFoundVisible}"
+				var="item" scrollHeight="250" scrollable="true" paginator="true"
+				rowKey="#{item.id}">
+				<f:facet name="header">
+					<h:outputText value="#{searchbundle['filesFound.title']}" />
+				</f:facet>
+				<p:column headerText="#{searchbundle['filesFound.path']}">
+					<h:outputText value="#{item.path}"></h:outputText>
+				</p:column>
+				<p:column headerText="#{searchbundle['filesFound.type']}">
+					<h:outputText value="#{item.type}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="#{searchbundle['filesFound.preview']}">
+					<p:commandButton update=":form:filePreViewDetail"
+						oncomplete="PF('filePreViewDialog').show()" icon="pi pi-search"
+						title="#{searchbundle['preview.label']}">
+						<f:setPropertyActionListener value="#{item}"
+							target="#{SearchMB.fileFoundSelected}" />
+					</p:commandButton>
+					<p:commandButton value="#{searchbundle['download.label']}"
+						ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
+						icon="pi pi-arrow-down"
+						actionListener="#{SearchMB.fileToDownload(item)}">
+						<p:fileDownload value="#{SearchMB.fileDownload}" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">
+					<h:outputText
+						value="#{searchbundle['rows.label']}: #{SearchMB.filesFoundSize}" />
+				</f:facet>
+			</p:dataTable>
+			<p:blockUI block="listFilesFound" trigger="listFilesFound">
+				<p:graphicImage name="/images/ajaxloading.gif" />
+			</p:blockUI>
+
+			<p:dataTable id="listContentsFound" value="#{SearchMB.contentsFound}"
+				var="item" scrollHeight="250" scrollable="true" paginator="true"
+				rowKey="#{item.id}" rendered="#{SearchMB.listContentsFoundVisible}" >
+				<f:facet name="header">
+					<h:outputText value="#{searchbundle['contentsFound.title']}" />
+				</f:facet>
+				<p:column headerText="#{searchbundle['contentsFound.fileName']}">
+					<p:outputPanel style="vertical-align: text-top">
+						<p:graphicImage name="/images/filetypes/#{item.getExtension}.png" />
+						<h:outputText value="#{item.fileName}" />
+						<br />
+						<h:outputText value="#{item.type}" />
+						<br />
+						<br />
+						<p:commandButton update=":form:filePreViewDetail"
+							oncomplete="PF('filePreViewDialog').show()" icon="pi pi-search"
+							title="#{searchbundle['preview.label']}">
+							<f:setPropertyActionListener value="#{item}"
+								target="#{SearchMB.filePreviewSelected}" />
+						</p:commandButton>
+						<p:commandButton value="#{searchbundle['download.label']}"
+							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
+							icon="pi pi-arrow-down"
+							actionListener="#{SearchMB.fileToDownload(item)}">
+							<p:fileDownload value="#{SearchMB.fileDownload}" />
+						</p:commandButton>
+					</p:outputPanel>
+				</p:column>
+				<p:column headerText="#{searchbundle['contentsFound.content']}">
+					<h:outputText  value="#{item.contentString}" styleClass="striped-list"/>
+				</p:column>
+
+
+				<f:facet name="footer">
+					<h:outputText
+						value="#{searchbundle['rows.label']}: #{SearchMB.contentsFoundSize}" />
+				</f:facet>
+			</p:dataTable>
+			<p:blockUI block="listContentsFound" trigger="listContentsFound">
+				<p:graphicImage name="/images/ajaxloading.gif" />
+			</p:blockUI>
+
+			<p:dialog modal="true" widgetVar="statusDialog" header="Status"
+				draggable="false" closable="false" resizable="false">
+				<p:graphicImage name="/images/ajaxloading.gif" />
+			</p:dialog>
+
+			<p:dialog header="#{searchbundle['preview.label']}" widgetVar="filePreViewDialog" modal="true"
+				showEffect="fade" hideEffect="fade" resizable="false" rendered="filePreViewDialogVisible">
+				<p:outputPanel id="filePreview" style="text-align:center;">
+					<p:panelGrid columns="1"
+						columnClasses="label,value">
+						<f:facet name="header">
+							<p:graphicImage name="/images/filetypes/#{item.getExtension}.png" />
+							<h:outputText value="#{item.path}" />
+							<br />
+							<h:outputText value="#{item.type}" />
+							<br />
+							<br />
+						</f:facet>
+
+						<h:outputText value="#{SearchMB.allContentHTML}" />
+					</p:panelGrid>
+				</p:outputPanel>
+			</p:dialog>
+
+
+
+		</h:form>
+
+
+
+	</ui:define>
+
+</ui:composition>
+</html>

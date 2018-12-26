@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="TemplateAdmin.xhtml">
+
+	<ui:define name="content">
+	   <h:form id="frm" action="Configuration.xhtml">
+			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
+				showDetail="true" />
+			
+			<h:panelGrid id="pnlEdit" columns="3">
+
+				<p:outputLabel for="id" value="#{repobundle['id.label']}:" rendered="#{RepositoryMB.editing}"/>
+				<h:outputText id="id" value="#{RepositoryMB.object.id}"  rendered="#{RepositoryMB.editing}" />
+				<p:message for="id" showSummary="false"  rendered="#{RepositoryMB.editing}" />
+
+				<p:outputLabel for="name" value="#{repobundle['name.label']}:" />
+				<p:inputText id="name" required="true"
+					requiredMessage="#{repobundle['name.requiredMessage']}"
+					value="#{RepositoryMB.object.name}" disabled="#{RepositoryMB.editing}"  />
+				<p:message for="name" />	
+				
+				<p:outputLabel for="localDirectory" value="#{repobundle['localDirectory.label']}:" />
+				<p:inputText id="localDirectory" required="true"
+					requiredMessage="#{repobundle['localDirectory.requiredMessage']}"
+					value="#{RepositoryMB.object.localDirectory}"  />
+				<p:message for="localDirectory" />
+				
+				<p:outputLabel for="cronExpression" value="#{repobundle['cronExpression.label']}:" />
+				<p:inputText id="cronExpression" required="true"
+					requiredMessage="#{repobundle['cronExpression.requiredMessage']}"
+					value="#{RepositoryMB.object.cronSchedule}"  />
+				<p:message for="cronExpression" />
+				
+				<p:outputLabel for="type" value="#{repobundle['type.label']}:" />
+				<p:selectOneMenu id="type" required="true" requiredMessage="#{repobundle['type.requiredMessage']}"
+					value="#{RepositoryMB.object.type}">
+					<f:selectItem noSelectionOption="true"/>
+					<p:ajax event="change" listener="#{RepositoryMB.onTypeChange}"
+						update=":frm" />
+				  <f:selectItems value="#{RepositoryMB.typeList}" />
+				</p:selectOneMenu>
+				<p:message for="type" />	
+				
+				<p:outputLabel for="remoteURL" value="#{repobundle['remoteURL.label']}:" rendered="#{RepositoryMB.remoteRepository}"/>
+				<p:inputText id="remoteURL" required="true" rendered="#{RepositoryMB.remoteRepository}"
+					value="#{RepositoryMB.object.remoteURL}"  />
+				<p:message for="remoteURL" rendered="#{RepositoryMB.remoteRepository}"/>		
+				
+				<p:outputLabel for="user" value="#{repobundle['user.label']}:" rendered="#{RepositoryMB.remoteRepository}"/>
+				<p:inputText id="user" required="false" rendered="#{RepositoryMB.remoteRepository}"
+					value="#{RepositoryMB.object.user}" />
+				<p:message for="user" rendered="#{RepositoryMB.remoteRepository}"/>
+				
+				<p:outputLabel for="password" value="#{repobundle['password.label']}:" rendered="#{RepositoryMB.remoteRepository}"/>
+				<p:inputText type="password" id="password" required="false" rendered="#{RepositoryMB.remoteRepository}"
+					value="#{RepositoryMB.object.password}"  />
+				<p:message for="password" rendered="#{RepositoryMB.remoteRepository}"/>
+				
+								
+				<p:outputLabel for="revision" value="#{repobundle['revision.label']}:" rendered="#{RepositoryMB.remoteRepository and RepositoryMB.editing}"/>
+				<p:inputText id="revision" required="false" disabled="true" rendered="#{RepositoryMB.remoteRepository and RepositoryMB.editing}"
+					value="#{RepositoryMB.object.revision}"  />
+				<p:message for="revision" rendered="#{RepositoryMB.remoteRepository and RepositoryMB.editing}"/>	
+				
+				<p:outputLabel for="lastExecution" value="#{repobundle['lastExecution.label']}:" />
+				<p:inputText id="lastExecution" required="false" disabled="true" 
+					value="#{RepositoryMB.object.lastExecution}"  />
+				<p:message for="lastExecution" />
+				
+			</h:panelGrid>
+			<p:commandButton id="insert" value="#{repobundle['insert.button']}" disabled="#{RepositoryMB.editing}"
+				update="frm list" action="#{RepositoryMB.create}" />
+			<p:commandButton id="update" value="#{repobundle['update.button']}" disabled="#{!RepositoryMB.editing}"
+				update="frm list" action="#{RepositoryMB.update}" />
+				
+			<p:commandButton id="clear" value="#{repobundle['clear.button']}" immediate="true" process="@this"
+				update="frm" action="#{RepositoryMB.clear}" />		
+
+		</h:form>
+		
+		<p:dataTable id="list" value="#{RepositoryMB.list}" var="item"
+			scrollHeight="250" scrollable="true" selectionMode="single"
+			rowKey="#{item.id}">
+			<f:facet name="header">
+				<h:outputText value="#{repobundle['list.title']}" />
+			</f:facet>
+			<p:ajax event="rowSelect" listener="#{RepositoryMB.onRowSelect}"
+				update=":frm" />
+			<p:ajax event="rowUnselect" listener="#{RepositoryMB.onRowUnSelect}"
+				update=":frm" />
+			<p:column headerText="#{repobundle['id.label']}">
+				<h:outputText value="#{item.id}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['name.label']}">
+				<h:outputText value="#{item.name}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['type.label']}">
+				<h:outputText value="#{item.type}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['localDirectory.label']}">
+				<h:outputText value="#{item.localDirectory}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['revision.label']}">
+				<h:outputText value="#{item.revision}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['action.label']}">
+				<p:commandButton action="#{RepositoryMB.delete(item)}" 
+				immediate="true" process="@this" value="X" update="frm list"/>
+			</p:column>
+			<f:facet name="footer">
+				<h:outputText value="#{repobundle['rows.label']}: #{RepositoryMB.listSize}" />
+			</f:facet>
+		</p:dataTable>
+	   
+	</ui:define>
+
+</ui:composition>
+</html>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config
+    xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd"
+    version="2.2">
+ 
+<application>
+		<locale-config>
+			<default-locale>pt_BR</default-locale>
+			<supported-locale>pt_BR</supported-locale>
+			<supported-locale>en</supported-locale>
+		</locale-config>
+		
+		<resource-bundle>
+			<base-name>io.github.hiperdeco.docsfinder.i18n.configuration</base-name>
+			<var>configbundle</var>
+		</resource-bundle>
+		  
+		<resource-bundle>
+			<base-name>io.github.hiperdeco.docsfinder.i18n.repository</base-name>
+			<var>repobundle</var>
+		</resource-bundle> 
+		
+		<resource-bundle>
+			<base-name>io.github.hiperdeco.docsfinder.i18n.user</base-name>
+			<var>userbundle</var>
+		</resource-bundle> 
+		
+		<resource-bundle>
+			<base-name>io.github.hiperdeco.docsfinder.i18n.general</base-name>
+			<var>generalbundle</var>
+		</resource-bundle>  
+		
+		<resource-bundle>
+			<base-name>io.github.hiperdeco.docsfinder.i18n.search</base-name>
+			<var>searchbundle</var>
+		</resource-bundle>  
+		
+		
+		
+		<action-listener>
+			 org.primefaces.application.DialogActionListener
+		</action-listener>
+		<navigation-handler>
+			 org.primefaces.application.DialogNavigationHandler
+		</navigation-handler>
+		<view-handler>
+			 org.primefaces.application.DialogViewHandler
+		</view-handler>
+		
+	</application> 
+</faces-config>

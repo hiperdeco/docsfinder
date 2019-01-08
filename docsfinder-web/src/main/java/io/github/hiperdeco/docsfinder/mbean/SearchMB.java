@@ -28,13 +28,12 @@ public class SearchMB {
 	private ContentFoundVO fileFoundSelected;
 	private ContentFoundVO filePreviewSelected;
 
-
 	private List<ContentFoundVO> filesFound;
 	private List<ContentFoundVO> contentsFound;
-	
+
 	private boolean listFilesFoundVisible = false;
 	private boolean listContentsFoundVisible = false;
-	
+
 	private long repositoryId;
 
 	public SearchVO getForm() {
@@ -51,12 +50,26 @@ public class SearchMB {
 	}
 
 	public List<ContentFoundVO> findFiles() {
-
+		if(! this.form.isFindPath()) return null;
+		try {
+			Thread.currentThread().sleep(3000);
+			listFilesFoundVisible = true;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return null;
 	}
 
 	public List<ContentFoundVO> find() {
+		try {
+			Thread.currentThread().sleep(5000);
+			listContentsFoundVisible = true;
 
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return null;
 	}
 
@@ -67,6 +80,10 @@ public class SearchMB {
 
 	public void clear() {
 		this.form = new SearchVO();
+		this.fileFoundSelected = null;
+		this.contentFoundSelected = null;
+		this.listContentsFoundVisible = false;
+		this.listFilesFoundVisible = false;
 
 	}
 
@@ -120,7 +137,7 @@ public class SearchMB {
 		return size;
 	}
 
-	public int getContentFoundSize() {
+	public int getContentsFoundSize() {
 		int size = 0;
 		if (this.contentsFound != null)
 			size = this.contentsFound.size();
@@ -142,10 +159,10 @@ public class SearchMB {
 	public void setFilePreviewSelected(ContentFoundVO filePreviewSelected) {
 		this.filePreviewSelected = filePreviewSelected;
 	}
-	
+
 	public String getAllContentHTML() {
-  		return FileUtil.getContentsHTML(this.repositoryId, this.filePreviewSelected.getPath());
-		
+		return FileUtil.getContentsHTML(this.repositoryId, this.filePreviewSelected.getPath());
+
 	}
 
 	public boolean isListFilesFoundVisible() {
@@ -163,7 +180,7 @@ public class SearchMB {
 	public void setListContentsFoundVisible(boolean listContentsFoundVisible) {
 		this.listContentsFoundVisible = listContentsFoundVisible;
 	}
-	
+
 	public boolean isFilePreViewDialogVisible() {
 		return this.filePreviewSelected != null;
 	}

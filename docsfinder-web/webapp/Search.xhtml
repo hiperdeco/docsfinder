@@ -43,10 +43,11 @@
 			}
 			//]]>
 		</script>
+
 		<h:form id="frm" action="Search.xhtml">
 			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
 				showDetail="true" />
-
+<div style="float:left; width:30%;">
 			<h:panelGrid id="pnlSearch" columns="3">
 
 				<p:outputLabel for="repo"
@@ -70,19 +71,35 @@
 					value="#{searchbundle['findPath.label']}" />
 				<p:selectBooleanCheckbox id="findPath" value="#{SearchMB.form.findPath}" />
 				<p:message for="findPath" />
+<p:row><p:commandButton id="search" value="#{searchbundle['search.button']}"
+				 onclick="find();" action="#{SearchMB.findFiles}" async="true" update="frm"
+			/>
+			<p:commandButton id="clear" value="#{searchbundle['clear.button']}"
+				immediate="true" process="@this" update="frm frm2"
+				action="#{SearchMB.clear}" />
+ </p:row>
 
 			</h:panelGrid>
-			<p:remoteCommand name="findFiles" action="#{SearchMB.findFiles}" 
-				update="listFilesFound" />
-			<p:remoteCommand name="find" action="#{SearchMB.find}" 
-				update="listFilesFound" />
-			<p:commandButton id="search" value="#{searchbundle['search.button']}"
-				update="frm" onclick="findFiles();find();" />
+</div>
+<div style="float:left; display:inline-block; z-index: 999">
+			<p:blockUI block="listFilesFound" trigger="search" id="listFilesLoading" >
+				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
+				<h:outputText value="Pesquisando Nomes de Arquivos..."/>
+			</p:blockUI>
 
-			<p:commandButton id="clear" value="#{searchbundle['clear.button']}"
-				immediate="true" process="@this" update="frm"
-				action="#{SearchMB.clear}" />
+</div>
+			<p:remoteCommand name="findFiles" id="findFiles" action="#{SearchMB.findFiles}" 
+				update="frm" />
+			<p:remoteCommand name="find" id="find" action="#{SearchMB.find}" 
+				update="frm2" />
+			
+					
 
+
+			 
+	<div style="float:right;width:70%; z-index: -1">
+		
+                        	
 			<p:dataTable id="listFilesFound" value="#{SearchMB.filesFound}" rendered="#{SearchMB.listFilesFoundVisible}"
 				var="item" scrollHeight="250" scrollable="true" paginator="true"
 				rowKey="#{item.id}">
@@ -97,7 +114,7 @@
 				</p:column>
 
 				<p:column headerText="#{searchbundle['filesFound.preview']}">
-					<p:commandButton update=":form:filePreViewDetail"
+					<p:commandButton update=":frm:filePreViewDetail"
 						oncomplete="PF('filePreViewDialog').show()" icon="pi pi-search"
 						title="#{searchbundle['preview.label']}">
 						<f:setPropertyActionListener value="#{item}"
@@ -115,10 +132,20 @@
 						value="#{searchbundle['rows.label']}: #{SearchMB.filesFoundSize}" />
 				</f:facet>
 			</p:dataTable>
-			<p:blockUI block="listFilesFound" trigger="listFilesFound">
-				<p:graphicImage name="/images/ajaxloading.gif" />
-			</p:blockUI>
+</div>
+			</h:form>
+<br/>
 
+		<h:form id="frm2" action="Search.xhtml">
+<div style="float:left; display:inline-block; z-index: 999">
+			<p:blockUI block="listContentsFound" trigger="frm:find" id="listContentsLoading">
+				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
+				<h:outputText value="Pesquisando Conteúdo..."/>
+			</p:blockUI>
+</div>
+
+<div style="float:right;width:70%; z-index: -1">
+			
 			<p:dataTable id="listContentsFound" value="#{SearchMB.contentsFound}"
 				var="item" scrollHeight="250" scrollable="true" paginator="true"
 				rowKey="#{item.id}" rendered="#{SearchMB.listContentsFoundVisible}" >
@@ -133,7 +160,7 @@
 						<h:outputText value="#{item.type}" />
 						<br />
 						<br />
-						<p:commandButton update=":form:filePreViewDetail"
+						<p:commandButton update=":frm:filePreViewDetail"
 							oncomplete="PF('filePreViewDialog').show()" icon="pi pi-search"
 							title="#{searchbundle['preview.label']}">
 							<f:setPropertyActionListener value="#{item}"
@@ -157,10 +184,8 @@
 						value="#{searchbundle['rows.label']}: #{SearchMB.contentsFoundSize}" />
 				</f:facet>
 			</p:dataTable>
-			<p:blockUI block="listContentsFound" trigger="listContentsFound">
-				<p:graphicImage name="/images/ajaxloading.gif" />
-			</p:blockUI>
-
+			
+</div>
 			<p:dialog modal="true" widgetVar="statusDialog" header="Status"
 				draggable="false" closable="false" resizable="false">
 				<p:graphicImage name="/images/ajaxloading.gif" />
@@ -188,6 +213,7 @@
 
 
 		</h:form>
+
 
 
 

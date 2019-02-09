@@ -13,6 +13,7 @@ import org.primefaces.event.SelectEvent;
 
 import io.github.hiperdeco.docsfinder.controller.CryptoUtil;
 import io.github.hiperdeco.docsfinder.controller.JPAUtil;
+import io.github.hiperdeco.docsfinder.controller.RepositoryJobManager;
 import io.github.hiperdeco.docsfinder.entity.Configuration;
 import io.github.hiperdeco.docsfinder.entity.Repository;
 import io.github.hiperdeco.docsfinder.entity.RepositoryType;
@@ -53,6 +54,7 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 
 	
 	public String create() {
+		Repository objSelected = null;
 		try {
 			if ( this.getObject().getType().equals(RepositoryType.LOCAL)) { 
 				this.getObject().setPassword("");
@@ -74,20 +76,24 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 				Configuration conf = new Configuration();
 				conf.setKey("INDEX_PATH");
 				conf.setRepository(this.getObject());
+				objSelected = this.getObject();
 				JPAUtil.insert(conf);
 			}catch(Exception e) {
-				log.error("Error creating configuration for " + this.getObject().getName());
+				log.error("Error creating configuration for " + objSelected.getName());
 			}
+			RepositoryJobManager.getInstance().addJob(objSelected);
 		}catch (Exception e) {
 			if (e.getMessage().contains("UQ_NAME") || e.getCause().getMessage().contains("UQ_NAME")) {
 				UIUtil.putMessage(UIConstants.BUNDLE_REPO, FacesMessage.SEVERITY_ERROR, "unique.title", "unique.message");
 			}
+			log.error(e.getMessage(),e);
 		}
 		refreshFields();
 		return "";
 	}
 	
 	public String update() {
+		Repository objSelected = null;
 		if ( this.getObject().getType().equals(RepositoryType.LOCAL)) { 
 			this.getObject().setPassword("");
 			this.getObject().setUser("");
@@ -106,9 +112,16 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 				this.getObject().setPassword(passwords.get(this.getObject().getId()));
 			
 		}
+		objSelected = this.getObject();
 		super.update();
-		passwords.put(this.getObject().getId(), this.getObject().getPassword());
+		passwords.put(objSelected.getId(), objSelected.getPassword());
+		try {
+			RepositoryJobManager.getInstance().addJob(objSelected);
+		}catch(Exception e) {
+			log.error("Error creating job: " + objSelected.getName(), e);
+		}
 		refreshFields();
+		
 		
 		return "";
 	}
@@ -118,6 +131,11 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 		JPAUtil.executeUpdate(hql);
 		super.delete(object);
 		passwords.remove(object.getId());
+		try {
+			RepositoryJobManager.getInstance().removeJob(object);
+		}catch(Exception e) {
+			log.error("Error removing job: " + object.getName(),e);
+		}
 		refreshFields();
 		return "";
 	}

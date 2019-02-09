@@ -3,11 +3,16 @@ package io.github.hiperdeco.docsfinder.controller;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.Query;
+
+import org.apache.log4j.Logger;
 
 import io.github.hiperdeco.docsfinder.entity.Configuration;
 
 public class ConfigurationManager {
+	
+	private static Logger log = Logger.getLogger(ConfigurationManager.class);
 	
 	
 	public static String getValue(long repositoryId, String keyName) {
@@ -20,11 +25,14 @@ public class ConfigurationManager {
 			qry.setParameter("key", keyName);
 			String ret = (String) qry.getSingleResult();
 			return ret;
+		}catch (NoResultException e) {
+			log.debug("No results");
 		}catch(Exception e) {
-			throw e;
+			log.error(e.getMessage(),e);
 		}finally {
 			JPAUtil.closeEntityManager(em);
 		}
+		return "";
 	}
 	
 	public static List<String> getListValue(long repositoryId, String keyName) {
@@ -38,11 +46,14 @@ public class ConfigurationManager {
 			@SuppressWarnings("unchecked")
 			List<String> ret =  (List<String>) qry.getResultList();
 			return ret;
+		}catch (NoResultException e) {
+			log.debug("No results");
 		}catch(Exception e) {
-			throw e;
+			log.error(e.getMessage(),e);
 		}finally {
 			JPAUtil.closeEntityManager(em);
 		}
+		return null;
 	}
 	
 	public static List<Configuration> getConfiguration(long repositoryId) {
@@ -55,11 +66,14 @@ public class ConfigurationManager {
 			@SuppressWarnings("unchecked")
 			List<Configuration> ret =  (List<Configuration>) qry.getResultList();
 			return ret;
+		}catch (NoResultException e) {
+			log.debug("No results");
 		}catch(Exception e) {
-			throw e;
+			log.error(e.getMessage(),e);
 		}finally {
 			JPAUtil.closeEntityManager(em);
 		}
+		return null;
 	}
 
 }

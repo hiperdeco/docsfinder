@@ -17,11 +17,13 @@
 		
 		<class>io.github.hiperdeco.docsfinder.entity.Configuration</class>
 		<class>io.github.hiperdeco.docsfinder.entity.Repository</class>
-		<!-- <class>io.github.hiperdeco.docsfinder.entity.RepositoryFile</class>
-		<class>io.github.hiperdeco.docsfinder.entity.RepositoryFileIndex</class> -->
 		<class>io.github.hiperdeco.docsfinder.entity.User</class>
 		<class>io.github.hiperdeco.docsfinder.entity.UserRepository</class>
+		<class>io.github.hiperdeco.docsfinder.entity.FileType</class>
 			
+				<!-- <class>io.github.hiperdeco.docsfinder.entity.RepositoryFile</class>
+		<class>io.github.hiperdeco.docsfinder.entity.RepositoryFileIndex</class> -->
+		
 		<properties>
 			<!-- 
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />

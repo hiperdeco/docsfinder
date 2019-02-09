@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.apache.log4j.Logger;
 import org.quartz.CronTrigger;
 import org.quartz.JobDetail;
@@ -158,6 +160,20 @@ public class RepositoryJobManager implements Serializable{
 			log.error("Shutdown Schedule Error", e);
 			throw e;
 		}
+	}
+	
+	public static Repository getRepository(String name) {
+		Repository repo = null;    
+		EntityManager em = null;
+	    try {
+	    	em = JPAUtil.getEntityManager();
+	    	repo = em.createNamedQuery("Repository.findByName",Repository.class).setParameter(1, name).getSingleResult();
+	    }catch(Exception e) {
+	    	log.error(e.getMessage(), e);
+	    }finally {
+	    	JPAUtil.closeEntityManager(em);
+	    }
+		return repo;
 	}
 
 	

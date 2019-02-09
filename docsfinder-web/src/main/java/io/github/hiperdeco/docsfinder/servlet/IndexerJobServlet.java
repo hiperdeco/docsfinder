@@ -13,17 +13,20 @@ public class IndexerJobServlet implements ServletContextListener {
 	
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
-			//nothing to do?
+		try {
+		RepositoryJobManager.getInstance().shutdownScheduler();
+		} catch (Exception e) {
+			log.error("Stopping scheduler error: ", e);
+		}
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		try {
-			//RepositoryJobManager.getInstance().startScheduler();
-			log.info("Servlet iniciou...");
-			System.out.println("Servlet iniciou...");
+			RepositoryJobManager.getInstance().startScheduler();
+			log.info("Schedule started");
 		} catch (Exception e) {
-			log.error("Starting job error: ", e);
+			log.error("Starting scheduler error: ", e);
 		}
 	}
 }

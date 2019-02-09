@@ -48,7 +48,7 @@
 			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
 				showDetail="true" />
 <div style="float:left; width:30%;">
-			<h:panelGrid id="pnlSearch" columns="3">
+			<h:panelGrid id="pnlSearch" columns="3" style="font-size:small">
 
 				<p:outputLabel for="repo"
 					value="#{searchbundle['repository.label']}:" />
@@ -82,7 +82,7 @@
 			</h:panelGrid>
 </div>
 <div style="float:left; display:inline-block; z-index: 999">
-			<p:blockUI block="listFilesFound" trigger="search" id="listFilesLoading" >
+			<p:blockUI block="listFilesFound" trigger="search" id="listFilesLoading" style="font-size:small">
 				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
 				<h:outputText value="Pesquisando Nomes de Arquivos..."/>
 			</p:blockUI>
@@ -102,7 +102,7 @@
                         	
 			<p:dataTable id="listFilesFound" value="#{SearchMB.filesFound}" rendered="#{SearchMB.listFilesFoundVisible}"
 				var="item" scrollHeight="250" scrollable="true" paginator="true"
-				rowKey="#{item.id}">
+				rowKey="#{item.id}" style="font-size:small">
 				<f:facet name="header">
 					<h:outputText value="#{searchbundle['filesFound.title']}" />
 				</f:facet>
@@ -138,17 +138,17 @@
 
 		<h:form id="frm2" action="Search.xhtml">
 <div style="float:left; display:inline-block; z-index: 999">
-			<p:blockUI block="listContentsFound" trigger="frm:find" id="listContentsLoading">
+			<p:blockUI block="listContentsFound" trigger="frm:find" id="listContentsLoading" style="font-size:small">
 				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
 				<h:outputText value="Pesquisando Conteúdo..."/>
 			</p:blockUI>
 </div>
 
-<div style="float:right;width:70%; z-index: -1">
+<div style="float:right; z-index: -1">
 			
 			<p:dataTable id="listContentsFound" value="#{SearchMB.contentsFound}"
 				var="item" scrollHeight="250" scrollable="true" paginator="true"
-				rowKey="#{item.id}" rendered="#{SearchMB.listContentsFoundVisible}" >
+				rowKey="#{item.id}" rendered="#{SearchMB.listContentsFoundVisible}" style="font-size:small" >
 				<f:facet name="header">
 					<h:outputText value="#{searchbundle['contentsFound.title']}" />
 				</f:facet>

@@ -62,6 +62,9 @@ public class Repository implements IEntityBase,Serializable {
 	@Column(name="CRON_SCHEDULE")
 	private String cronSchedule ="0 0 0 * * ?"; //default Daily 00:00 AM
 	
+	@Column(name="LAST_STATUS")
+	private Date lastStatus;
+	
 	public long getId() {
 		return id;
 	}
@@ -140,6 +143,7 @@ public class Repository implements IEntityBase,Serializable {
 
 	public void setStatus(RepositoryStatus status) {
 		this.status = status;
+		this.lastStatus = new Date();
 	}
 
 	public long getIndexSequence() {
@@ -161,6 +165,24 @@ public class Repository implements IEntityBase,Serializable {
 
 	public void setCronSchedule(String cronSchedule) {
 		this.cronSchedule = cronSchedule;
+	}
+	public Date getLastStatus() {
+		return lastStatus;
+	}
+
+	public void setLastStatus(Date lastStatus) {
+		this.lastStatus = lastStatus;
+	}
+	public void clearEssentials() {
+		this.status = null;
+		this.cronSchedule = null;
+		this.password = null;
+		this.type = null;
+		this.remoteURL = null;
+		this.revision = null;
+		this.localDirectory = null;
+		this.remoteURL = null;
+		
 	}
 	
 }

@@ -15,6 +15,7 @@ import javax.persistence.UniqueConstraint;
 @Table(name="FILE_TYPE",uniqueConstraints= {@UniqueConstraint(name="UQ_FILE_TYPE",columnNames= {"MIME_TYPE","EXTENSION"})})
 public class FileType implements IEntityBase,Serializable {
 
+
 	/**
 	 * 
 	 */
@@ -32,6 +33,14 @@ public class FileType implements IEntityBase,Serializable {
 	private String extension;
 	
 	
+	public FileType() {
+		
+	}
+	public FileType(String mimeType, String extension) {
+		this.mimeType = mimeType;
+		this.extension = extension;
+	}
+
 	@Override
 	public long getId() {
 		return this.id;
@@ -61,6 +70,37 @@ public class FileType implements IEntityBase,Serializable {
 	
 	public String toString() {
 		return this.getMimeType() + " (." + this.extension+")";
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((extension == null) ? 0 : extension.hashCode());
+		result = prime * result + ((mimeType == null) ? 0 : mimeType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FileType other = (FileType) obj;
+		if (extension == null) {
+			if (other.extension != null)
+				return false;
+		} else if (!extension.equals(other.extension))
+			return false;
+		if (mimeType == null) {
+			if (other.mimeType != null)
+				return false;
+		} else if (!mimeType.equals(other.mimeType))
+			return false;
+		return true;
 	}
 
 }

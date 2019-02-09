@@ -2,15 +2,20 @@ package io.github.hiperdeco.docsfinder.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -28,9 +33,12 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.tika.Tika;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobKey;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.ParsingReader;
 
 import io.github.hiperdeco.docsfinder.constants.Properties;
 import io.github.hiperdeco.docsfinder.entity.FileType;
@@ -51,35 +59,63 @@ public class RepositoryIndexer implements Serializable {
 	}
 
 	private Tika tika = new Tika();
+	private TikaConfig tikaConfig = null;
 	private Repository repository;
-
-	private List<Document> filePaths = new ArrayList<Document>();
+	private IndexWriter writer;
+	private String localDirectory = null;
+	
+	private Set<FileType> filesType = new HashSet<FileType>();
 
 	public RepositoryIndexer(Repository repository) {
 		this.repository = repository;
+		this.localDirectory = repository.getLocalDirectory();
+		repository.clearEssentials();
+		try {
+			this.tikaConfig = new TikaConfig();
+		}catch(Exception e) {
+			log.error(e.getMessage(),e);
+		}
 	}
 
 	public Repository getRepository() {
 		return repository;
 	}
 
-	public void setRepository(Repository repository) {
-		this.repository = repository;
-	}
 	
+	public Reader parse(Path path) throws Exception {
+		try {
+			Metadata metadata = new Metadata();
+			InputStream stream = TikaInputStream.get(path, metadata);
+			ParseContext context = new ParseContext();
+			context.set(Parser.class, tikaConfig.getParser());
+			return new ParsingReader(tikaConfig.getParser(), stream, metadata, context,
+					tikaConfig.getExecutorService());
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 
-	private void addFilePath(Object path) {
+	private void addFileIndex(Object path) {
 
 		try {
 			Document doc = new Document();
+			String extension ="";
+			String mimeType = tika.detect((Path) path);
 			doc.add(new StringField("path", path.toString(), Store.YES));
-			doc.add(new StringField("mimeType", tika.detect((Path) path), Store.YES));
-			String[] pathAux = path.toString().split("\\."); 
-			if (pathAux.length > 1)
-				doc.add(new StringField("extension", pathAux[pathAux.length - 1].toLowerCase(), Store.YES));
-			doc.add(new Field("content", tika.parse((Path) path), contentFieldType));
-			filePaths.add(doc);
-		} catch (IOException e) {
+			doc.add(new StringField("mimeType", mimeType, Store.YES));
+			String[] pathAux = path.toString().split("\\.");
+			
+			if (pathAux.length > 1) {
+				extension = pathAux[pathAux.length - 1].toLowerCase();
+				doc.add(new StringField("extension", extension , Store.YES));
+			}
+			doc.add(new Field("content", this.parse((Path) path), contentFieldType));
+			//filePaths.add(doc);
+			if (writer != null)	writer.addDocument(doc);
+			FileType type = new FileType(mimeType, extension);
+			filesType.add(type);
+			log.debug("Document " + path.toString() + " parsed.");
+		} catch (Exception e) {
 			log.info("Document " + path.toString() + " discarded");
 			log.debug("Indexed document " + path.toString() + " error", e);
 		}
@@ -88,32 +124,70 @@ public class RepositoryIndexer implements Serializable {
 
 	public void execute() {
 
-		changeIndexStatus(RepositoryStatus.INDEXING);
+		try {
+			changeIndexStatus(RepositoryStatus.INDEXING);
+		} catch (Exception e) {
+			throw e;
+		}
 		// varrer o diretorio local informado.
-		File localDirectory = new File(this.getRepository().getLocalDirectory());
+		File localDirectory = new File(this.localDirectory);
 		if (!localDirectory.exists() || !localDirectory.isDirectory()) {
 			changeIndexStatusError();
 			throw new RuntimeException("Directory not exists");
 		}
 
+		Directory dir = null;
+		Analyzer analyzer = null;
+		
 		try {
-			Files.walk(Paths.get(localDirectory.toURI())).filter(Files::isRegularFile).forEach(this::addFilePath);
+			analyzer = new StandardAnalyzer();
+			// armazenar
+			IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			config.setOpenMode(OpenMode.CREATE);
+
+			dir = NIOFSDirectory.open(new File(
+					getIndexPath() + this.getRepository().getId() + "_" + this.getRepository().getNextIndexSequence())
+							.toPath());
+			writer = new IndexWriter(dir, config);
+			
+			Files.walk(Paths.get(localDirectory.toURI())).filter(Files::isRegularFile).forEach(this::addFileIndex);
 		} catch (IOException e) {
 			log.error("Read Directory Error", e);
 			changeIndexStatusError();
 			throw new RuntimeException(e);
+		} catch (Exception e) {
+			log.error(e.getMessage(),e);
+			changeIndexStatusError();
+			throw e;
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+					writer = null;
+				} catch (Exception e) {
+				}
+			if (dir != null)
+				try {
+					dir.close();
+				} catch (Exception e) {
+				}
+			if (analyzer != null)
+				try {
+					analyzer.close();
+				} catch (Exception e) {
+				}
 		}
 
-		if (filePaths.isEmpty()) {
-			changeIndexStatus(RepositoryStatus.EMPTY);
-			log.warn("Directory " + localDirectory.getAbsolutePath() + " is empty.");
-			throw new RuntimeException("Directory  is empty");
-		}
-
-		// process index
+		
 		try {
-			processIndex();
 			persistFileTypes();
+		}catch (Exception e) {
+			log.error("Persist FileType Error", e);
+		}
+		
+		// process success status
+		try {
+			
 			this.getRepository().setLastExecution(new Date());
 			this.getRepository().setIndexSequence(this.getRepository().getNextIndexSequence());
 			changeIndexStatus(RepositoryStatus.INDEXED);
@@ -124,42 +198,51 @@ public class RepositoryIndexer implements Serializable {
 
 	}
 
-	private void processIndex() throws IOException {
-
-		IndexWriter writer = null;
-		Directory dir = null;
-		Analyzer analyzer = null;
-		try {
-			analyzer = new StandardAnalyzer();
-			// armazenar
-			IndexWriterConfig config = new IndexWriterConfig(analyzer);
-			config.setOpenMode(OpenMode.CREATE);
-
-			dir = NIOFSDirectory.open(new File(	getIndexPath()
-					+ this.getRepository().getId() + "_" + this.getRepository().getNextIndexSequence())
-					.toPath());
-			writer = new IndexWriter(dir, config);
-			writer.addDocuments(filePaths);
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (writer != null)
-				try{writer.close();}catch(Exception e) {}
-			if (dir != null)
-				try{dir.close();}catch(Exception e) {}
-			if (analyzer != null)
-				try{analyzer.close();}catch(Exception e) {}
+	public synchronized void changeIndexStatus(RepositoryStatus status) {
+		if (!isIndexRunningConflict(status)) {
+			try {
+				this.getRepository().setStatus(status);
+				JPAUtil.update(this.getRepository());
+			} catch (Exception e) {
+				throw e;
+			}
+		} else {
+			log.error("Repository Already Index Running" + this.getRepository().getName());
+			throw new RuntimeException("");
 		}
-
 	}
 
-	public void changeIndexStatus(RepositoryStatus status) {
-		try {
-			this.getRepository().setStatus(status);
-			JPAUtil.update(this.getRepository());
-		} catch (Exception e) {
-			throw e;
-		} 
+	private boolean isIndexRunningConflict(RepositoryStatus status) {
+		boolean ret = false;
+		if (status.equals(RepositoryStatus.INDEXING)) {
+			EntityManager em = null;
+			try {
+				em = JPAUtil.getEntityManager();
+				Query query = em
+						.createQuery("select repo.status, repo.lastStatus from Repository repo where repo.id = ?");
+				query.setParameter(1, this.getRepository().getId());
+				Object[] line = (Object[]) query.getSingleResult();
+				RepositoryStatus st = (RepositoryStatus) line[0];
+				Date lastStatus = (Date) line[1];
+				if (st.equals(status)) {
+					if (lastStatus != null) {
+
+						long hourDuration = Duration.between(Instant.ofEpochMilli(lastStatus.getTime()),
+								Instant.ofEpochMilli((new Date()).getTime())).toHours();
+						log.info("Check conflict. Time spent from " + this.getRepository().getName()
+								+ " for indexRunning " + hourDuration + "h");
+						if (hourDuration < Long.valueOf(System.getProperty("maxRepoIndexing", "24"))) {
+							return true;
+						}
+					}
+				}
+			} catch (Exception e) {
+				throw e;
+			} finally {
+				JPAUtil.closeEntityManager(em);
+			}
+		}
+		return ret;
 	}
 
 	public void changeIndexStatusError() {
@@ -169,50 +252,48 @@ public class RepositoryIndexer implements Serializable {
 			changeIndexStatus(RepositoryStatus.ERROR);
 		}
 	}
-	
+
 	public static void removeIndexedSequence(Repository repository) {
 		try {
-			FileUtils.deleteDirectory(new File(
-					Properties.get("indexPath", System.getProperty("java.io.tmpdir"))
-					+ repository.getId() + "_" + repository.getIndexSequence())
-					); 
+			FileUtils.deleteDirectory(new File(Properties.get("indexPath", System.getProperty("java.io.tmpdir"))
+					+ repository.getId() + "_" + repository.getIndexSequence()));
 		} catch (Exception e) {
 			log.error("Deleteting Directory Error", e);
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private void persistFileTypes() {
 		EntityManager em = null;
 		try {
 			em = JPAUtil.getEntityManager();
-			em.getTransaction().begin();
-			for(Document doc: filePaths) {
+			em.getTransaction().begin();	
+			for (FileType type: this.filesType) {
 				try {
-					FileType type = new FileType();
-					type.setMimeType(doc.getField("mimeType").stringValue());
-					type.setExtension(doc.getField("extension").stringValue());
 					em.persist(type);
 				}catch(Exception e) {
-					log.debug("Error Persisting FileType",e);
+					log.debug("Error Persisting FileType:" + type);
 				}
 			}
 			em.getTransaction().commit();
-		}catch(Exception e) {
-			log.debug("Error Persisting FileType",e);
+		} catch (Exception e) {
+			log.debug("Error persisting filetypes");
 			em.getTransaction().rollback();
-		}finally {
+		} finally {
 			JPAUtil.closeEntityManager(em);
 		}
-		
+
 	}
-	
+
 	private String getIndexPath() {
 		String result = ConfigurationManager.getValue(this.repository.getId(), "INDEX_PATH");
 		if (result == null || result.isEmpty()) {
 			result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
+			if (!result.endsWith("/")) {
+				result += "/";
+			}
 		}
-		return 	result;
+		return result;
 	}
-	
+
 }

@@ -1,6 +1,7 @@
 package io.github.hiperdeco.docsfinder.mbean;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.faces.bean.ManagedBean;
@@ -8,10 +9,13 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import io.github.hiperdeco.docsfinder.controller.FileUtil;
+import io.github.hiperdeco.docsfinder.controller.JPAUtil;
+import io.github.hiperdeco.docsfinder.controller.RepositoryFinder;
 import io.github.hiperdeco.docsfinder.entity.Repository;
 import io.github.hiperdeco.docsfinder.ui.ComboListItem;
 import io.github.hiperdeco.docsfinder.ui.util.UIUtil;
@@ -21,6 +25,8 @@ import io.github.hiperdeco.docsfinder.vo.SearchVO;
 @ManagedBean(name = "SearchMB")
 @SessionScoped
 public class SearchMB {
+	
+	private static Logger log = Logger.getLogger(SearchMB.class);
 
 	private SearchVO form = new SearchVO();
 
@@ -49,28 +55,34 @@ public class SearchMB {
 		return "";
 	}
 
-	public List<ContentFoundVO> findFiles() {
+	public String findFiles() {
 		if(! this.form.isFindPath()) return null;
 		try {
 			Thread.currentThread().sleep(3000);
 			listFilesFoundVisible = true;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
-		return null;
+		return "";
 	}
 
-	public List<ContentFoundVO> find() {
+	public String find() {
+		List<ContentFoundVO> list = new ArrayList<ContentFoundVO>();
 		try {
-			Thread.currentThread().sleep(5000);
-			listContentsFoundVisible = true;
-
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Repository repo = (Repository) JPAUtil.findById(Repository.class, this.getRepositoryId());
+			RepositoryFinder finder = new RepositoryFinder(repo);
+			list = finder.find(this.getForm());
+		}catch(Exception e) {
+			log.error(e.getMessage(),e);
 		}
-		return null;
+		this.contentsFound = list;
+		if (list.size()>0) {
+			listContentsFoundVisible = true;
+		}else {
+			listContentsFoundVisible = false;
+		}
+		return "";
 	}
 
 	public List<ComboListItem> getRepositoryList() {

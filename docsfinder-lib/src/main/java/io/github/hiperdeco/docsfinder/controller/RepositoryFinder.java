@@ -65,7 +65,6 @@ public class RepositoryFinder implements Serializable {
 			throw new FinderException("Repository not Indexed", Type.REPOSITORY_EMPTY);
 		}
 			
-		
 		List<ContentFoundVO> result = new ArrayList<ContentFoundVO>();
 		
 		
@@ -76,7 +75,7 @@ public class RepositoryFinder implements Serializable {
 		try {
 			
 			try {
-				dir = NIOFSDirectory.open(new File(getIndexPath()+this.getRepository().getId()).toPath());
+				dir = NIOFSDirectory.open(new File(getIndexPath()+this.getRepository().getId()+"_"+this.getRepository().getIndexSequence()).toPath());
 				reader = DirectoryReader.open(dir);
 			}catch (Exception e) {
 				if (this.getRepository().getStatus().equals(RepositoryStatus.INDEXING)) {
@@ -91,7 +90,7 @@ public class RepositoryFinder implements Serializable {
 			IndexSearcher searchIndex = new IndexSearcher(reader);
 			Query query = queryParser.parse(search.getTerm());
 			
-			TopDocs hits = searchIndex.search(query, Integer.MAX_VALUE);
+			TopDocs hits = searchIndex.search(query, 1000);
 			
 			//if no hits, ends here
 			if (hits.scoreDocs.length == 0) throw new FinderException("Not Found", Type.NOT_FOUND);
@@ -128,14 +127,19 @@ public class RepositoryFinder implements Serializable {
 	            
 	            //Get stored text from found document
 	            File file = new File(path);
-	            String text = tika.parseToString(file);
+	            String text = docx.get("content");//tika.parseToString(file);
 	            String type = docx.get("mimeType");
+	            String extension = docx.get("extension");
 	            
 	            //get the matches
 	            Matcher m = r.matcher(text);
-	            List<String> textMatchs = new ArrayList<String>();;
+	            List<String> textMatchs = new ArrayList<String>();
 	            while (m.find( )) {
-	            	textMatchs.add(m.group().replaceAll(termRegex, "<b>$1</b>"));
+	            	try {
+	            		textMatchs.add(m.group().replaceAll(termRegex, "<b>$1</b>"));
+	            	}catch(Exception e) {
+	            		textMatchs.add(m.group());
+	            	}
 	            }
 	            
 	            ContentFoundVO found = new ContentFoundVO();
@@ -143,11 +147,12 @@ public class RepositoryFinder implements Serializable {
 	            found.setType(type);
 	            found.setContent(textMatchs);
 	            found.setFileName(file.getName());
+	            found.setExtension(extension);
 	            
 	            result.add(found);
 	            
 	        }
-
+			log.info(result.size() + " results found.");
 		}catch(Exception e) {
 			throw e;
 		}finally {
@@ -218,6 +223,9 @@ public class RepositoryFinder implements Serializable {
 		String result = ConfigurationManager.getValue(this.repository.getId(), "INDEX_PATH");
 		if (result == null || result.isEmpty()) {
 			result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
+			if (!result.endsWith("/")) {
+				result += "/";
+			}
 		}
 		return 	result;
 	}

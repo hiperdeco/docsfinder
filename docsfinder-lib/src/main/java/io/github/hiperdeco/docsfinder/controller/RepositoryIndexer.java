@@ -26,6 +26,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -57,7 +58,7 @@ public class RepositoryIndexer implements Serializable {
 		contentFieldType.setStored(false);
 		contentFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 	}
-
+ 
 	private Tika tika = new Tika();
 	private TikaConfig tikaConfig = null;
 	private Repository repository;
@@ -69,7 +70,6 @@ public class RepositoryIndexer implements Serializable {
 	public RepositoryIndexer(Repository repository) {
 		this.repository = repository;
 		this.localDirectory = repository.getLocalDirectory();
-		repository.clearEssentials();
 		try {
 			this.tikaConfig = new TikaConfig();
 		}catch(Exception e) {
@@ -109,7 +109,7 @@ public class RepositoryIndexer implements Serializable {
 				extension = pathAux[pathAux.length - 1].toLowerCase();
 				doc.add(new StringField("extension", extension , Store.YES));
 			}
-			doc.add(new Field("content", this.parse((Path) path), contentFieldType));
+			doc.add(new TextField("content", tika.parseToString((Path) path), Store.YES));
 			//filePaths.add(doc);
 			if (writer != null)	writer.addDocument(doc);
 			FileType type = new FileType(mimeType, extension);
@@ -187,10 +187,7 @@ public class RepositoryIndexer implements Serializable {
 		
 		// process success status
 		try {
-			
-			this.getRepository().setLastExecution(new Date());
-			this.getRepository().setIndexSequence(this.getRepository().getNextIndexSequence());
-			changeIndexStatus(RepositoryStatus.INDEXED);
+			changeFinishStatus();
 		} catch (Exception e) {
 			log.error("Index Error", e);
 			changeIndexStatusError();
@@ -201,6 +198,7 @@ public class RepositoryIndexer implements Serializable {
 	public synchronized void changeIndexStatus(RepositoryStatus status) {
 		if (!isIndexRunningConflict(status)) {
 			try {
+				this.repository = (Repository) JPAUtil.findById(Repository.class, this.getRepository().getId());
 				this.getRepository().setStatus(status);
 				JPAUtil.update(this.getRepository());
 			} catch (Exception e) {
@@ -210,6 +208,22 @@ public class RepositoryIndexer implements Serializable {
 			log.error("Repository Already Index Running" + this.getRepository().getName());
 			throw new RuntimeException("");
 		}
+	}
+	
+	public synchronized void changeFinishStatus() {
+	
+		try {
+			
+			this.repository = (Repository) JPAUtil.findById(Repository.class, this.getRepository().getId());
+			this.getRepository().setStatus(RepositoryStatus.INDEXED);
+			this.getRepository().setLastExecution(new Date());
+			this.getRepository().setIndexSequence(this.getRepository().getNextIndexSequence());
+			JPAUtil.update(this.getRepository());
+			removeLastIndexedSequence(this.getRepository());
+		} catch (Exception e) {
+			throw e;
+		}
+	
 	}
 
 	private boolean isIndexRunningConflict(RepositoryStatus status) {
@@ -246,6 +260,7 @@ public class RepositoryIndexer implements Serializable {
 	}
 
 	public void changeIndexStatusError() {
+		this.repository = (Repository) JPAUtil.findById(Repository.class, this.getRepository().getId());
 		if (this.getRepository().getLastExecution() != null) {
 			changeIndexStatus(RepositoryStatus.INDEXED_ERROR);
 		} else {
@@ -253,10 +268,10 @@ public class RepositoryIndexer implements Serializable {
 		}
 	}
 
-	public static void removeIndexedSequence(Repository repository) {
+	public static void removeLastIndexedSequence(Repository repository) {
 		try {
 			FileUtils.deleteDirectory(new File(Properties.get("indexPath", System.getProperty("java.io.tmpdir"))
-					+ repository.getId() + "_" + repository.getIndexSequence()));
+					+ repository.getId() + "_" + (repository.getIndexSequence() - 1) ));
 		} catch (Exception e) {
 			log.error("Deleteting Directory Error", e);
 			throw new RuntimeException(e);

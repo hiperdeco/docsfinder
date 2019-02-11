@@ -155,7 +155,6 @@ public class Repository implements IEntityBase,Serializable {
 	}
 
 	public long getNextIndexSequence() {
-		// TODO Auto-generated method stub
 		return this.indexSequence + 1;
 	}
 

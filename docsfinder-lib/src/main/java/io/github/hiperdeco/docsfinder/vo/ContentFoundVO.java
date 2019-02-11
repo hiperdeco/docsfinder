@@ -16,6 +16,8 @@ public class ContentFoundVO implements Serializable {
 	private List<String> content;
 	
 	private String fileName;
+	
+	private String extension;
 
 	public String getPath() {
 		return path;
@@ -67,11 +69,16 @@ public class ContentFoundVO implements Serializable {
 	}
 
 	public String getExtension() {
+		if (this.extension == null || this.extension.isEmpty()) {
 		String[] pathAux = this.fileName.split("\\."); 
 		if (pathAux.length > 1)
-			return pathAux[pathAux.length - 1].toLowerCase();
-		return "";
+			this.extension =  pathAux[pathAux.length - 1].toLowerCase();
+		}
+		return this.extension;
 	}
 	
+	public void setExtension(String extension) {
+		this.extension = extension;
+	}
 
 }

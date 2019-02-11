@@ -37,14 +37,22 @@ public class RestartStatusServlet extends HttpServlet {
 		if (jobKey != null && !jobKey.isEmpty()) {
 		log.info("Restarting status for Repository : " + jobKey);
 	    
+		try {
 	    Repository repo = RepositoryJobManager.getRepository(jobKey);
-	    
 	    RepositoryIndexer indexer = new RepositoryIndexer(repo);
 	    indexer.changeIndexStatus(RepositoryStatus.EMPTY);
 	    
 	    response.getWriter().println("<html><h1> Repository " + jobKey + " status restarted</h1></html>");
 	    
 	    log.info("Status Repository restarted: " + jobKey);
+		}catch(Exception e) {
+			log.error(e.getMessage(),e);
+			response.getWriter().println("<html><h1> Repository " + jobKey + " error:</h1>");
+			response.getWriter().println("<p>"+ e.getMessage() +"</p></html>");
+			
+		}
+	    
+	    
 		}
 	}
 

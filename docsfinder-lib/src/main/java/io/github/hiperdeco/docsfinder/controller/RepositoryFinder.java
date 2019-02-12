@@ -90,7 +90,7 @@ public class RepositoryFinder implements Serializable {
 			IndexSearcher searchIndex = new IndexSearcher(reader);
 			Query query = queryParser.parse(search.getTerm());
 			
-			TopDocs hits = searchIndex.search(query, 1000);
+			TopDocs hits = searchIndex.search(query, Integer.MAX_VALUE);
 			
 			//if no hits, ends here
 			if (hits.scoreDocs.length == 0) throw new FinderException("Not Found", Type.NOT_FOUND);
@@ -134,12 +134,20 @@ public class RepositoryFinder implements Serializable {
 	            //get the matches
 	            Matcher m = r.matcher(text);
 	            List<String> textMatchs = new ArrayList<String>();
+	            int maxLines = Integer.parseInt(System.getProperty("maxLines","25"));
+	            int count = 0;
 	            while (m.find( )) {
 	            	try {
-	            		textMatchs.add(m.group().replaceAll(termRegex, "<b>$1</b>"));
+	            		textMatchs.add(m.group().replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
 	            	}catch(Exception e) {
 	            		textMatchs.add(m.group());
 	            	}
+	            	count++;
+	            	if (count >= maxLines) {
+	            		textMatchs.add("<b>...</b>");
+	            		break;
+	            	}
+	            		
 	            }
 	            
 	            ContentFoundVO found = new ContentFoundVO();

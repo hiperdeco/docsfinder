@@ -81,60 +81,13 @@
 
 			</h:panelGrid>
 </div>
-<div style="">
-			<p:blockUI block="listFilesFound" trigger="search" id="listFilesLoading" style="font-size:small">
-				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
-				<h:outputText value="Pesquisando Nomes de Arquivos..."/>
-			</p:blockUI>
-
-</div>
-			<p:remoteCommand name="findFiles" id="findFiles" action="#{SearchMB.findFiles}" 
-				update="frm" />
 			<p:remoteCommand name="find" id="find" action="#{SearchMB.find}" 
-				update="frm2" />
-			
-					
-
-
-			 
-	<div style="">
-		
-                        	
-			<p:dataTable id="listFilesFound" value="#{SearchMB.filesFound}" rendered="#{SearchMB.listFilesFoundVisible}"
-				var="item" scrollHeight="250" scrollable="true" paginator="true"
-				rowKey="#{item.id}" style="font-size:small">
-				<f:facet name="header">
-					<h:outputText value="#{searchbundle['filesFound.title']}" />
-				</f:facet>
-				<p:column headerText="#{searchbundle['filesFound.path']}">
-					<h:outputText value="#{item.path}"></h:outputText>
-				</p:column>
-				<p:column headerText="#{searchbundle['filesFound.type']}">
-					<h:outputText value="#{item.type}"></h:outputText>
-				</p:column>
-
-				<p:column headerText="#{searchbundle['filesFound.preview']}">
-					<p:commandButton value="#{searchbundle['download.label']}"
-						ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-						icon="pi pi-arrow-down"
-						actionListener="#{SearchMB.fileToDownload(item)}">
-						<p:fileDownload value="#{SearchMB.fileDownload}" />
-					</p:commandButton>
-				</p:column>
-				<f:facet name="footer">
-					<h:outputText
-						value="#{searchbundle['rows.label']}: #{SearchMB.filesFoundSize}" />
-				</f:facet>
-			</p:dataTable>
-</div>
-			</h:form>
-<br/>
-
-		<h:form id="frm2" action="Search.xhtml">
+				update="frm" />			 
+	
 <div style="">
 			<p:blockUI block="listContentsFound" trigger="frm:find" id="listContentsLoading" style="font-size:small">
 				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
-				<h:outputText value="Pesquisando Conteúdo..."/>
+				<h:outputText value="#{searchbundle['search.finding']}"/>
 			</p:blockUI>
 </div>
 
@@ -146,28 +99,31 @@
 				<f:facet name="header">
 					#{searchbundle['contentsFound.title']}
 				</f:facet>
-				<h:panelGrid id="pnlSearch" cols="3"  style="font-size:small;width:100%;background-color:white">
+				<h:panelGrid id="pnlSearch" cols="1"  style="font-size:small;width:100%;background-color:white;border-style: solid;border-width: 2px">
+					<p:row>
+					<b>#{searchbundle['contentsFound.type']}:</b> #{item.type}
+					</p:row>
 					<p:row>
 						<p:column>
 							<p:graphicImage name="/images/filetypes/#{item.extension}.png" />
 							<p:commandLink 
 							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
 							actionListener="#{SearchMB.fileToDownload(item)}">
-							 #{item.fileName}
+							 #{item.path}
 							<p:fileDownload value="#{SearchMB.fileDownload}" />
 							</p:commandLink>
 						</p:column>
 						
-						<p:column>
-							<b>#{searchbundle['contentsFound.type']}:</b> #{item.type}
-						</p:column>
+						
 					</p:row>
-				</h:panelGrid>
-				<br/>
-				<p:outputPanel scape="false" style="width:100%">
+					<p:row>
+				<p:outputPanel scape="false" style="border-style: dotted">
                                    <h:outputText escape="false" value="#{item.contentString}"/>
 				</p:outputPanel>
-<br/><br/>
+					</p:row>
+				</h:panelGrid>
+			<br/>
+				
 			</p:dataList>
 			
 </div>

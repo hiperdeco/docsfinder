@@ -5,13 +5,15 @@ public class TesteRegExp {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		String text = "Isso tem * e + e + e ? também - com* e*.* ";
+		String text = "Isso tem * E + e + e ? também - com* E*.* ";
 		
 		System.out.println(text.replaceAll("[*,?,+,-]",""));
 		
 		System.out.println(text.split("[*,?,+,-]").length);
 		
 		System.out.println(text.replaceAll("([*,?,+,-])","<b>$1</b>"));
+		
+		System.out.println(text.replaceAll("(?i)(e)","<b>$1</b>"));
 
 	}
 

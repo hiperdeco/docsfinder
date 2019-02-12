@@ -144,6 +144,7 @@ public class RepositoryIndexer implements Serializable {
 			// armazenar
 			IndexWriterConfig config = new IndexWriterConfig(analyzer);
 			config.setOpenMode(OpenMode.CREATE);
+			config.setCommitOnClose(true);
 
 			dir = NIOFSDirectory.open(new File(
 					getIndexPath() + this.getRepository().getId() + "_" + this.getRepository().getNextIndexSequence())
@@ -151,6 +152,7 @@ public class RepositoryIndexer implements Serializable {
 			writer = new IndexWriter(dir, config);
 			
 			Files.walk(Paths.get(localDirectory.toURI())).filter(Files::isRegularFile).forEach(this::addFileIndex);
+			writer.flush();
 		} catch (IOException e) {
 			log.error("Read Directory Error", e);
 			changeIndexStatusError();

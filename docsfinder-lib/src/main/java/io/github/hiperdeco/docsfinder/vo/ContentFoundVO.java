@@ -40,6 +40,9 @@ public class ContentFoundVO implements Serializable {
 	}
 	
 	public String getContentString() {
+		if (this.content == null || this.content.isEmpty()) {
+			return "";
+		}
 		StringBuffer contentString = new StringBuffer("<ul class=\"striped-list\">");
 		for (String line: this.content) {
 			contentString.append("<li>" + line + "</li>");
@@ -80,5 +83,31 @@ public class ContentFoundVO implements Serializable {
 	public void setExtension(String extension) {
 		this.extension = extension;
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ContentFoundVO other = (ContentFoundVO) obj;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		return true;
+	}
+
 
 }

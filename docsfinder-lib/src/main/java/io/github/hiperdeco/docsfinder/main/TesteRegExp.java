@@ -14,6 +14,9 @@ public class TesteRegExp {
 		System.out.println(text.replaceAll("([*,?,+,-])","<b>$1</b>"));
 		
 		System.out.println(text.replaceAll("(?i)(e)","<b>$1</b>"));
+		
+		String outro = "Bla *? bla eu tenho .*";
+		System.out.println(outro.replaceAll("^[*|?]+", ""));
 
 	}
 

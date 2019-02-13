@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.io.FileUtils;
@@ -23,7 +24,7 @@ import io.github.hiperdeco.docsfinder.vo.ContentFoundVO;
 import io.github.hiperdeco.docsfinder.vo.SearchVO;
 
 @ManagedBean(name = "SearchMB")
-@SessionScoped
+@ViewScoped
 public class SearchMB {
 	
 	private static Logger log = Logger.getLogger(SearchMB.class);

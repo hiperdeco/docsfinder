@@ -72,10 +72,10 @@
 				<p:selectBooleanCheckbox id="findPath" value="#{SearchMB.form.findPath}" />
 				<p:message for="findPath" />
 <p:row><p:commandButton id="search" value="#{searchbundle['search.button']}"
-				 onclick="find();" action="#{SearchMB.findFiles}" async="true" update="frm"
+				  action="#{SearchMB.find}"  update="frm"
 			/>
 			<p:commandButton id="clear" value="#{searchbundle['clear.button']}"
-				immediate="true" process="@this" update="frm frm2"
+				immediate="true" process="@this" update="frm"
 				action="#{SearchMB.clear}" />
  </p:row>
 
@@ -109,7 +109,7 @@
 							<p:commandLink 
 							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
 							actionListener="#{SearchMB.fileToDownload(item)}">
-							 #{item.path}
+							<h:outputText escape="false" value="#{item.path}"/>
 							<p:fileDownload value="#{SearchMB.fileDownload}" />
 							</p:commandLink>
 						</p:column>
@@ -117,8 +117,8 @@
 						
 					</p:row>
 					<p:row>
-				<p:outputPanel scape="false" style="border-style: dotted">
-                                   <h:outputText escape="false" value="#{item.contentString}"/>
+				<p:outputPanel scape="false" style="border-style: dotted" rendered="#{! empty item.contentString}" >
+                      	<h:outputText escape="false" value="#{item.contentString}" />
 				</p:outputPanel>
 					</p:row>
 				</h:panelGrid>

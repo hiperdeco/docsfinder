@@ -103,6 +103,7 @@ public class RepositoryIndexer implements Serializable {
 			String mimeType = tika.detect((Path) path);
 			doc.add(new StringField("path", path.toString(), Store.YES));
 			doc.add(new StringField("mimeType", mimeType, Store.YES));
+			doc.add(new StringField("fileName", ((Path) path).getFileName().toString(), Store.YES));
 			String[] pathAux = path.toString().split("\\.");
 			
 			if (pathAux.length > 1) {

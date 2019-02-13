@@ -15,10 +15,11 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
@@ -29,7 +30,6 @@ import io.github.hiperdeco.docsfinder.entity.Repository;
 import io.github.hiperdeco.docsfinder.entity.RepositoryStatus;
 import io.github.hiperdeco.docsfinder.exception.FinderException;
 import io.github.hiperdeco.docsfinder.exception.FinderException.Type;
-import io.github.hiperdeco.docsfinder.main.TesteFileWalker;
 import io.github.hiperdeco.docsfinder.vo.ContentFoundVO;
 import io.github.hiperdeco.docsfinder.vo.SearchVO;
 
@@ -86,6 +86,41 @@ public class RepositoryFinder implements Serializable {
 			}
 			
 			analyzer = new StandardAnalyzer();
+			//replace first character ? or *
+			search.setTerm(search.getTerm().replaceFirst("^[*|?]+", ""));
+			TopDocs hitsFile = null;
+			if(search.isFindPath()) {
+				IndexSearcher searchIndexFile = new IndexSearcher(reader);
+				Query queryFile = new TermQuery(new Term("path",search.getTerm()));
+				int count = reader.getDocCount("path");
+				
+				String termRegexFile = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+				String pattern = "^.*(" + termRegexFile + ").*$";
+				 // Create a Pattern object
+	            Pattern rf = Pattern.compile(pattern,Pattern.MULTILINE| Pattern.CASE_INSENSITIVE);
+				for (int i = 0; i < count; i++)
+		        {
+		            Document docx = searchIndexFile.doc(i);
+		            String path = docx.get("path"); 
+		            //get the matches
+		            Matcher mf = rf.matcher(path);
+		            if(mf.find()) {
+
+			            String type = docx.get("mimeType");
+			            String extension = docx.get("extension");
+			            String fileName = docx.get("fileName");
+			            
+			            ContentFoundVO found = new ContentFoundVO();
+			            found.setPath(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegexFile+")", "<b>$1</b>"));
+			            found.setType(type);
+			            found.setExtension(extension);
+			            found.setFileName(fileName);
+			            result.add(found);
+		            }
+		            
+		        }
+			}
+			
 			QueryParser queryParser = new QueryParser("content", analyzer);
 			IndexSearcher searchIndex = new IndexSearcher(reader);
 			Query query = queryParser.parse(search.getTerm());
@@ -93,7 +128,7 @@ public class RepositoryFinder implements Serializable {
 			TopDocs hits = searchIndex.search(query, Integer.MAX_VALUE);
 			
 			//if no hits, ends here
-			if (hits.scoreDocs.length == 0) throw new FinderException("Not Found", Type.NOT_FOUND);
+			if (hits.scoreDocs.length == 0 &&result.isEmpty()) throw new FinderException("Not Found", Type.NOT_FOUND);
 			
 			//org.apache.lucene.search.PhraseQuery (unica frase)
 			//org.apache.lucene.search.TermQuery (uma palavra)
@@ -126,15 +161,15 @@ public class RepositoryFinder implements Serializable {
 	            String path = docx.get("path");
 	            
 	            //Get stored text from found document
-	            File file = new File(path);
 	            String text = docx.get("content");//tika.parseToString(file);
 	            String type = docx.get("mimeType");
 	            String extension = docx.get("extension");
+	            String fileName = docx.get("fileName");
 	            
 	            //get the matches
 	            Matcher m = r.matcher(text);
 	            List<String> textMatchs = new ArrayList<String>();
-	            int maxLines = Integer.parseInt(System.getProperty("maxLines","25"));
+	            int maxLines = Integer.parseInt(System.getProperty("maxLines","10"));
 	            int count = 0;
 	            while (m.find( )) {
 	            	try {
@@ -151,11 +186,15 @@ public class RepositoryFinder implements Serializable {
 	            }
 	            
 	            ContentFoundVO found = new ContentFoundVO();
-	            found.setPath(path.replace(repository.getLocalDirectory(), ""));
+	            found.setPath(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
 	            found.setType(type);
 	            found.setContent(textMatchs);
-	            found.setFileName(file.getName());
 	            found.setExtension(extension);
+	            found.setFileName(fileName);
+ 
+	            if (search.isFindPath() && result.contains(found)) {
+	            	result.remove(found);
+	            }
 	            
 	            result.add(found);
 	            

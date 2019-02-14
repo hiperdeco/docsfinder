@@ -17,6 +17,8 @@ public class TesteRegExp {
 		
 		String outro = "Bla *? bla eu tenho .*";
 		System.out.println(outro.replaceAll("^[*|?]+", ""));
+		String outro1 = "REPO_un_un";
+		System.out.println(outro1.replaceAll("_un$", ""));
 
 	}
 

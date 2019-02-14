@@ -111,7 +111,8 @@ public class RepositoryFinder implements Serializable {
 			            String fileName = docx.get("fileName");
 			            
 			            ContentFoundVO found = new ContentFoundVO();
-			            found.setPath(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegexFile+")", "<b>$1</b>"));
+			            found.setPath(path);
+			            found.setPathDescription(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegexFile+")", "<b>$1</b>"));
 			            found.setType(type);
 			            found.setExtension(extension);
 			            found.setFileName(fileName);
@@ -186,7 +187,8 @@ public class RepositoryFinder implements Serializable {
 	            }
 	            
 	            ContentFoundVO found = new ContentFoundVO();
-	            found.setPath(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
+	            found.setPath(path);
+	            found.setPathDescription(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
 	            found.setType(type);
 	            found.setContent(textMatchs);
 	            found.setExtension(extension);

@@ -53,12 +53,6 @@ public class RepositoryIndexer implements Serializable {
 
 	private static final long serialVersionUID = -64136026102778742L;
 
-	private static FieldType contentFieldType = new FieldType();
-	static {
-		contentFieldType.setStored(false);
-		contentFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
-	}
- 
 	private Tika tika = new Tika();
 	private TikaConfig tikaConfig = null;
 	private Repository repository;
@@ -148,7 +142,7 @@ public class RepositoryIndexer implements Serializable {
 			config.setCommitOnClose(true);
 
 			dir = NIOFSDirectory.open(new File(
-					getIndexPath() + this.getRepository().getId() + "_" + this.getRepository().getNextIndexSequence())
+					getIndexPath(this.getRepository()) + this.getRepository().getId() + "_" + this.getRepository().getNextIndexSequence())
 							.toPath());
 			writer = new IndexWriter(dir, config);
 			
@@ -273,7 +267,7 @@ public class RepositoryIndexer implements Serializable {
 
 	public static void removeLastIndexedSequence(Repository repository) {
 		try {
-			FileUtils.deleteDirectory(new File(Properties.get("indexPath", System.getProperty("java.io.tmpdir"))
+			FileUtils.deleteDirectory(new File(getIndexPath(repository)
 					+ repository.getId() + "_" + (repository.getIndexSequence() - 1) ));
 		} catch (Exception e) {
 			log.error("Deleteting Directory Error", e);
@@ -303,8 +297,8 @@ public class RepositoryIndexer implements Serializable {
 
 	}
 
-	private String getIndexPath() {
-		String result = ConfigurationManager.getValue(this.repository.getId(), "INDEX_PATH");
+	private static  String getIndexPath(Repository repository) {
+		String result = ConfigurationManager.getValue(repository.getId(), "INDEX_PATH");
 		if (result == null || result.isEmpty()) {
 			result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
 			if (!result.endsWith("/")) {

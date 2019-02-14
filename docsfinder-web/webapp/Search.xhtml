@@ -107,9 +107,11 @@
 						<p:column>
 							<p:graphicImage name="/images/filetypes/#{item.extension}.png" />
 							<p:commandLink 
-							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-							actionListener="#{SearchMB.fileToDownload(item)}">
-							<h:outputText escape="false" value="#{item.path}"/>
+							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"	>
+							<f:param name="fileName" value="#{item.fileName}"/>
+							<f:param name="filePath" value="#{item.path}"/>
+							<f:param name="fileType" value="#{item.type}"/>
+							<h:outputText escape="false" value="#{item.pathDescription}"/>
 							<p:fileDownload value="#{SearchMB.fileDownload}" />
 							</p:commandLink>
 						</p:column>

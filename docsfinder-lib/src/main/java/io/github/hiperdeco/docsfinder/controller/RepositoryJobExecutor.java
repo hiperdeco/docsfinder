@@ -11,6 +11,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 
 import io.github.hiperdeco.docsfinder.entity.Repository;
+import io.github.hiperdeco.docsfinder.entity.RepositoryStatus;
 
 public class RepositoryJobExecutor  implements Job, Serializable {
 
@@ -23,19 +24,38 @@ public class RepositoryJobExecutor  implements Job, Serializable {
 	
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 	    JobKey jobKey = context.getJobDetail().getKey();
-	    log.info("Executing scheduled index for : " + jobKey);
+	    String repoName = jobKey.getName();
+	    log.info("Executing scheduled index for : " + repoName);
+	    //rename prevents for unique job "_un"
+	    if (repoName.endsWith("_un")) {
+	    	repoName = repoName.replaceAll("_un$", "");
+	    }
+	    
 	    EntityManager em = null;
+	    Repository repo = null;
 	    try {
 		    em = JPAUtil.getEntityManager();
-		    Repository repo = em.createNamedQuery("Repository.findByName",Repository.class).setParameter(1, jobKey.getName()).getSingleResult();
+		    repo = em.createNamedQuery("Repository.findByName",Repository.class).setParameter(1, repoName).getSingleResult();
+	    }catch(Exception e) {
+	    	log.error("Failed to find Repository: "+ repoName, e);
+	    	throw new JobExecutionException("Failed to find repository");
+	    }finally {
+	    	JPAUtil.closeEntityManager(em);
+	    }
+
+	    try {
+		    RepositoryFetcher fetcher = new RepositoryFetcher(repo);
+		    fetcher.execute();
 		    
 		    RepositoryIndexer indexer = new RepositoryIndexer(repo);
 		    indexer.execute();
-		    log.info("End of scheduled execution for: " + jobKey);
+		    log.info("End of scheduled execution for: " + repoName);
 	    }catch(Exception e) {
-	    	log.error("Error to schedule execution for: "+ jobKey, e);
+	    	log.error("Error to schedule execution for: "+ repoName, e);
 	    }finally {
-	    	JPAUtil.closeEntityManager(em);
+	    	repo = (Repository) JPAUtil.findById(Repository.class, repo.getId());
+	    	repo.setStatus(RepositoryStatus.ERROR);
+	    	JPAUtil.update(repo);
 	    }
 	    
 	}

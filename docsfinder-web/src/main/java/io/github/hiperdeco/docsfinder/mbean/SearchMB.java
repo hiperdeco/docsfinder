@@ -1,9 +1,15 @@
 package io.github.hiperdeco.docsfinder.mbean;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
@@ -34,6 +40,7 @@ public class SearchMB {
 	private ContentFoundVO contentFoundSelected;
 	private ContentFoundVO fileFoundSelected;
 	private ContentFoundVO filePreviewSelected;
+	private StreamedContent fileToDownload = null;
 
 	private List<ContentFoundVO> filesFound;
 	private List<ContentFoundVO> contentsFound;
@@ -81,6 +88,7 @@ public class SearchMB {
 		if (list.size()>0) {
 			listContentsFoundVisible = true;
 		}else {
+			 UIUtil.putMessage(FacesMessage.SEVERITY_INFO, "crud.list.title", "crud.list.norecords");
 			listContentsFoundVisible = false;
 		}
 		return "";
@@ -101,14 +109,45 @@ public class SearchMB {
 	}
 
 	public void fileToDownload(ContentFoundVO file) {
+		try {
+			this.fileToDownload.getStream().close();
+		}catch(Exception e) {
+			
+		}
+		this.fileFoundSelected = file;
+		String localPath = ((Repository) JPAUtil.findById(Repository.class, this.getRepositoryId())).getLocalDirectory();
+		InputStream stream = FacesContext.getCurrentInstance().getExternalContext()
+				.getResourceAsStream(localPath + this.contentFoundSelected.getPath());
+		this.fileToDownload = new DefaultStreamedContent(stream, this.contentFoundSelected.getType(), this.contentFoundSelected.getFileName());
 
 	}
 
-	// TODO: rewrite
 	public StreamedContent getFileDownload() {
-		InputStream stream = FacesContext.getCurrentInstance().getExternalContext()
-				.getResourceAsStream("/resources/demo/images/boromir.jpg");
-		return new DefaultStreamedContent(stream, "image/jpg", "downloaded_boromir.jpg");
+		try {
+			this.fileToDownload.getStream().close();
+		}catch(Exception e) {
+			
+		}
+		FacesContext context = FacesContext.getCurrentInstance();
+		Map map = context.getExternalContext().getRequestParameterMap();
+		String fileName = (String) map.get("fileName");
+		String filePath = (String) map.get("filePath");
+		String fileType = (String) map.get("fileType");
+		
+		//String localPath = ((Repository) JPAUtil.findById(Repository.class, this.getRepositoryId())).getLocalDirectory();
+		InputStream stream = null;
+		try {
+			stream = new  FileInputStream(filePath);
+			log.debug("Download file: " + filePath);
+		} catch (FileNotFoundException e) {
+			log.error(e.getMessage(),e);
+		}
+		
+		this.fileToDownload = new DefaultStreamedContent(stream, fileType, fileName);
+		return this.fileToDownload;
+	}
+	public void setFileDownload(StreamedContent file) {
+		this.fileToDownload = file;
 	}
 
 	public ContentFoundVO getFileFoundSelected() {
@@ -197,5 +236,17 @@ public class SearchMB {
 	public boolean isFilePreViewDialogVisible() {
 		return this.filePreviewSelected != null;
 	}
+	
+	@PostConstruct
+	@PreDestroy
+	public void clearOpenFile() {
+		try {
+			this.fileToDownload.getStream().close();
+			this.fileToDownload = null;
+		}catch(Exception e) {
+			
+		}
+	}
+	
 
 }

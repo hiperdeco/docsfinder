@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.RequestScoped;
 import javax.faces.bean.ViewScoped;
 import javax.faces.event.AjaxBehaviorEvent;
 import org.apache.log4j.Logger;
@@ -16,13 +17,13 @@ import io.github.hiperdeco.docsfinder.controller.JPAUtil;
 import io.github.hiperdeco.docsfinder.controller.RepositoryJobManager;
 import io.github.hiperdeco.docsfinder.entity.Configuration;
 import io.github.hiperdeco.docsfinder.entity.Repository;
+import io.github.hiperdeco.docsfinder.entity.RepositoryStatus;
 import io.github.hiperdeco.docsfinder.entity.RepositoryType;
 import io.github.hiperdeco.docsfinder.ui.UIConstants;
 import io.github.hiperdeco.docsfinder.ui.util.UIUtil;
 
 //TODO: Documentar classe
 @ManagedBean(name = "RepositoryMB")
-@ViewScoped
 public class RepositoryMB extends AbstractCRUDMB<Repository> {
 
 	private static Logger log = Logger.getLogger(RepositoryMB.class);
@@ -135,11 +136,30 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 			RepositoryJobManager.getInstance().removeJob(object);
 		}catch(Exception e) {
 			log.error("Error removing job: " + object.getName(),e);
+			UIUtil.putMessage(FacesMessage.SEVERITY_ERROR, "error.title", "error.message");
 		}
 		refreshFields();
 		return "";
 	}
-
+	
+	public String reset(Repository object) {
+		String hql = "update Repository r set r.status = RepositoryStatus.EMPTY where r.id =  " + object.getId();
+		JPAUtil.executeUpdate(hql);
+		this.getObject().setStatus(RepositoryStatus.EMPTY);
+		return "";
+	}
+	
+	public String forceIndex(Repository object) {
+		try {
+			RepositoryJobManager.getInstance().executeJob(object);
+			UIUtil.putMessage(UIConstants.BUNDLE_REPO, FacesMessage.SEVERITY_INFO, "forceIndex.title", "forceIndex.message");
+		}catch(Exception e) {
+			log.error("Error starting job: " + object.getName(),e);
+			UIUtil.putMessage(UIConstants.BUNDLE_REPO, FacesMessage.SEVERITY_ERROR, "forceIndex.title", "forceIndex.errormessage");
+		}
+		return "";
+	}
+	
 
 	public void onTypeChange(AjaxBehaviorEvent event) {
 		RepositoryType type = (RepositoryType) ((javax.faces.component.html.HtmlSelectOneMenu) event

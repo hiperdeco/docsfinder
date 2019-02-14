@@ -14,7 +14,7 @@
 			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
 				showDetail="true" />
 			
-			<h:panelGrid id="pnlEdit" columns="3">
+			<h:panelGrid id="pnlEdit" columns="3" style="font-size:small">
 
 				<p:outputLabel for="id" value="#{repobundle['id.label']}:" rendered="#{RepositoryMB.editing}"/>
 				<h:outputText id="id" value="#{RepositoryMB.object.id}"  rendered="#{RepositoryMB.editing}" />
@@ -76,18 +76,18 @@
 				
 			</h:panelGrid>
 			<p:commandButton id="insert" value="#{repobundle['insert.button']}" disabled="#{RepositoryMB.editing}"
-				update="frm list" action="#{RepositoryMB.create}" />
+				update="frm list" action="#{RepositoryMB.create}" style="font-size:small" />
 			<p:commandButton id="update" value="#{repobundle['update.button']}" disabled="#{!RepositoryMB.editing}"
-				update="frm list" action="#{RepositoryMB.update}" />
+				update="frm list" action="#{RepositoryMB.update}" style="font-size:small" />
 				
 			<p:commandButton id="clear" value="#{repobundle['clear.button']}" immediate="true" process="@this"
-				update="frm" action="#{RepositoryMB.clear}" />		
+				update="frm" action="#{RepositoryMB.clear}" style="font-size:small" />		
 
 		</h:form>
 		
 		<p:dataTable id="list" value="#{RepositoryMB.list}" var="item"
 			scrollHeight="250" scrollable="true" selectionMode="single"
-			rowKey="#{item.id}">
+			rowKey="#{item.id}" style="font-size:small">
 			<f:facet name="header">
 				<h:outputText value="#{repobundle['list.title']}" />
 			</f:facet>
@@ -107,12 +107,22 @@
 			<p:column headerText="#{repobundle['localDirectory.label']}">
 				<h:outputText value="#{item.localDirectory}"></h:outputText>
 			</p:column>
-			<p:column headerText="#{repobundle['revision.label']}">
-				<h:outputText value="#{item.revision}"></h:outputText>
+			<p:column headerText="#{repobundle['status.label']}">
+				<h:outputText value="#{item.status}"></h:outputText>
+			</p:column>
+			<p:column headerText="#{repobundle['lastExecution.label']}">
+				<h:outputText value="#{item.lastExecution}"></h:outputText>
 			</p:column>
 			<p:column headerText="#{repobundle['action.label']}">
-				<p:commandButton action="#{RepositoryMB.delete(item)}" 
-				immediate="true" process="@this" value="X" update="frm list"/>
+				<p:commandButton id="delete" action="#{RepositoryMB.delete(item)}" 
+				immediate="true" process="@this" value="X" update="frm list" />
+				<p:tooltip id="tpDelete" for="delete" position="top" value="#{repobundle['action.delete.tooltip']}" />
+				<p:commandButton id="forceindex" action="#{RepositoryMB.forceIndex(item)}" 
+				immediate="true" process="@this" value="I" update="frm list" />
+				<p:tooltip id="tpforceIndex" for="forceindex" position="top" value="#{repobundle['action.forceIndex.tooltip']}" />
+				<p:commandButton id="reset" action="#{RepositoryMB.reset(item)}" 
+				immediate="true" process="@this" value="R" update="frm list" />
+				<p:tooltip id="tpreset" for="reset" position="top" value="#{repobundle['action.reset.tooltip']}" />
 			</p:column>
 			<f:facet name="footer">
 				<h:outputText value="#{repobundle['rows.label']}: #{RepositoryMB.listSize}" />

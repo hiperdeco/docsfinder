@@ -11,6 +11,8 @@ public class ContentFoundVO implements Serializable {
 	
 	private String path;
 	
+	private String pathDescription;
+	
 	private String type;
 
 	private List<String> content;
@@ -84,6 +86,14 @@ public class ContentFoundVO implements Serializable {
 		this.extension = extension;
 	}
 	
+	public String getPathDescription() {
+		return pathDescription;
+	}
+
+	public void setPathDescription(String pathDescription) {
+		this.pathDescription = pathDescription;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

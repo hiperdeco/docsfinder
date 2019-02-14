@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.RequestScoped;
 import javax.faces.bean.ViewScoped;
 import javax.faces.event.AjaxBehaviorEvent;
 import org.apache.log4j.Logger;
@@ -24,6 +23,7 @@ import io.github.hiperdeco.docsfinder.ui.util.UIUtil;
 
 //TODO: Documentar classe
 @ManagedBean(name = "RepositoryMB")
+@ViewScoped
 public class RepositoryMB extends AbstractCRUDMB<Repository> {
 
 	private static Logger log = Logger.getLogger(RepositoryMB.class);

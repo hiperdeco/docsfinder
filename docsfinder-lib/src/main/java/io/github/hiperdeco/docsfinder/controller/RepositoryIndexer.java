@@ -92,6 +92,10 @@ public class RepositoryIndexer implements Serializable {
 	private void addFileIndex(Object path) {
 
 		try {
+            if (path.toString().contains(".svn")){
+                log.info("Document " + path.toString() + " discarded");
+                return;
+            }
 			Document doc = new Document();
 			String extension ="";
 			String mimeType = tika.detect((Path) path);
@@ -128,7 +132,7 @@ public class RepositoryIndexer implements Serializable {
 		File localDirectory = new File(this.localDirectory);
 		if (!localDirectory.exists() || !localDirectory.isDirectory()) {
 			changeIndexStatusError();
-			throw new RuntimeException("Directory not exists");
+			throw new RuntimeException("Directory not exists:" + this.localDirectory);
 		}
 
 		Directory dir = null;

@@ -18,7 +18,7 @@ import javax.persistence.UniqueConstraint;
 @Table(name="REPO",uniqueConstraints= {@UniqueConstraint(name="UQ_NAME",columnNames= {"NAME"})})
 @NamedQueries({
 	@NamedQuery(name="Repository.findAllIdAndDescription", query="select r.id, r.name from Repository r"),
-	@NamedQuery(name="Repository.findByName", query="select r from Repository r where r.name = ?")
+	@NamedQuery(name="Repository.findByName", query="select r from Repository r where r.name = ?1")
 })
 public class Repository implements IEntityBase,Serializable {
 
@@ -172,16 +172,6 @@ public class Repository implements IEntityBase,Serializable {
 	public void setLastStatus(Date lastStatus) {
 		this.lastStatus = lastStatus;
 	}
-	public void clearEssentials() {
-		this.status = null;
-		this.cronSchedule = null;
-		this.password = null;
-		this.type = null;
-		this.remoteURL = null;
-		this.revision = null;
-		this.localDirectory = null;
-		this.remoteURL = null;
-		
-	}
+    
 	
 }

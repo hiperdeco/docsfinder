@@ -31,6 +31,7 @@ public class FileUtil implements Serializable {
 	
 	private static Logger log = Logger.getLogger(FileUtil.class);
 
+	//future release
 	public static String getContentsHTML(String path) {
 		File file = new File(path);
 		InputStream input = null;

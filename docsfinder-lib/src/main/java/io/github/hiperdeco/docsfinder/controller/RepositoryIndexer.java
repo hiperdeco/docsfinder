@@ -11,9 +11,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -22,12 +19,9 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -42,7 +36,6 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.ParsingReader;
 
 import io.github.hiperdeco.docsfinder.constants.Properties;
-import io.github.hiperdeco.docsfinder.entity.FileType;
 import io.github.hiperdeco.docsfinder.entity.Repository;
 import io.github.hiperdeco.docsfinder.entity.RepositoryStatus;
 
@@ -59,8 +52,6 @@ public class RepositoryIndexer implements Serializable {
 	private IndexWriter writer;
 	private String localDirectory = null;
 	
-	private Set<FileType> filesType = new HashSet<FileType>();
-
 	public RepositoryIndexer(Repository repository) {
 		this.repository = repository;
 		this.localDirectory = repository.getLocalDirectory();
@@ -92,10 +83,16 @@ public class RepositoryIndexer implements Serializable {
 	private void addFileIndex(Object path) {
 
 		try {
-            if (path.toString().contains(".svn")){
-                log.info("Document " + path.toString() + " discarded");
-                return;
-            }
+			String valueIgnore = Properties.get("ignore.files","").trim();
+			if (! valueIgnore.isEmpty()) {
+				String[] ignoreList = valueIgnore.split(";"); 
+				for (String ig: ignoreList) {
+		            if (path.toString().contains(ig)){
+		                log.debug("Document " + path.toString() + " ignored");
+		                return;
+		            }
+				}
+			}
 			Document doc = new Document();
 			String extension ="";
 			String mimeType = tika.detect((Path) path);
@@ -109,14 +106,27 @@ public class RepositoryIndexer implements Serializable {
 				doc.add(new StringField("extension", extension , Store.YES));
 			}
 			doc.add(new TextField("content", tika.parseToString((Path) path), Store.YES));
-			//filePaths.add(doc);
 			if (writer != null)	writer.addDocument(doc);
-			FileType type = new FileType(mimeType, extension);
-			filesType.add(type);
+			
 			log.debug("Document " + path.toString() + " parsed.");
 		} catch (Exception e) {
-			log.info("Document " + path.toString() + " discarded");
+			log.info("Document " + path.toString() + " without content stored.");
 			log.debug("Indexed document " + path.toString() + " error", e);
+			try {
+				Document doc = new Document();
+				doc.add(new StringField("path", path.toString(), Store.YES));
+				doc.add(new StringField("mimeType", "unknown", Store.YES));
+				doc.add(new StringField("fileName", ((Path) path).getFileName().toString(), Store.YES));
+				String[] pathAux = path.toString().split("\\.");
+				String extension = "";
+				if (pathAux.length > 1) {
+					extension = pathAux[pathAux.length - 1].toLowerCase();
+					doc.add(new StringField("extension", extension , Store.YES));
+				}
+				if (writer != null)	writer.addDocument(doc);
+			}catch(Exception e1) {
+				log.error("Document " + path.toString() + " discarded. Error.",e1 );
+			}
 		}
 
 	}
@@ -177,13 +187,6 @@ public class RepositoryIndexer implements Serializable {
 					analyzer.close();
 				} catch (Exception e) {
 				}
-		}
-
-		
-		try {
-			persistFileTypes();
-		}catch (Exception e) {
-			log.error("Persist FileType Error", e);
 		}
 		
 		// process success status
@@ -279,36 +282,13 @@ public class RepositoryIndexer implements Serializable {
 		}
 	}
 
-	private void persistFileTypes() {
-		EntityManager em = null;
-		try {
-			em = JPAUtil.getEntityManager();
-			em.getTransaction().begin();	
-			for (FileType type: this.filesType) {
-				try {
-					em.persist(type);
-				}catch(Exception e) {
-					log.debug("Error Persisting FileType:" + type);
-				}
-			}
-			em.getTransaction().commit();
-		} catch (Exception e) {
-			log.debug("Error persisting filetypes");
-			em.getTransaction().rollback();
-		} finally {
-			JPAUtil.closeEntityManager(em);
-		}
-
-	}
 
 	private static  String getIndexPath(Repository repository) {
-		String result = ConfigurationManager.getValue(repository.getId(), "INDEX_PATH");
-		if (result == null || result.isEmpty()) {
-			result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
-			if (!result.endsWith("/")) {
+		String result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
+		if (!result.endsWith("/")) {
 				result += "/";
-			}
 		}
+		
 		return result;
 	}
 

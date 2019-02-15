@@ -14,7 +14,6 @@ import org.primefaces.event.SelectEvent;
 import io.github.hiperdeco.docsfinder.controller.CryptoUtil;
 import io.github.hiperdeco.docsfinder.controller.JPAUtil;
 import io.github.hiperdeco.docsfinder.controller.RepositoryJobManager;
-import io.github.hiperdeco.docsfinder.entity.Configuration;
 import io.github.hiperdeco.docsfinder.entity.Repository;
 import io.github.hiperdeco.docsfinder.entity.RepositoryStatus;
 import io.github.hiperdeco.docsfinder.entity.RepositoryType;
@@ -72,16 +71,6 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 				}
 			}
 			super.create();
-			//create default configuration
-			try {
-				Configuration conf = new Configuration();
-				conf.setKey("INDEX_PATH");
-				conf.setRepository(this.getObject());
-				objSelected = this.getObject();
-				JPAUtil.insert(conf);
-			}catch(Exception e) {
-				log.error("Error creating configuration for " + objSelected.getName());
-			}
 			RepositoryJobManager.getInstance().addJob(objSelected);
 		}catch (Exception e) {
 			if (e.getMessage().contains("UQ_NAME") || e.getCause().getMessage().contains("UQ_NAME")) {
@@ -109,9 +98,7 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 			   	UIUtil.putMessage(FacesMessage.SEVERITY_ERROR, "error.title", "error.message");
 			}
 		}else{
-			
 				this.getObject().setPassword(passwords.get(this.getObject().getId()));
-			
 		}
 		objSelected = this.getObject();
 		super.update();
@@ -128,8 +115,6 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 	}
 	
 	public String delete(Repository object) {
-		String hql = "delete from Configuration c where c.repository.id =  " + object.getId();
-		JPAUtil.executeUpdate(hql);
 		super.delete(object);
 		passwords.remove(object.getId());
 		try {
@@ -162,8 +147,8 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 	
 
 	public void onTypeChange(AjaxBehaviorEvent event) {
-		RepositoryType type = (RepositoryType) ((javax.faces.component.html.HtmlSelectOneMenu) event
-                .getSource()).getValue();
+		/*RepositoryType type = (RepositoryType) ((javax.faces.component.html.HtmlSelectOneMenu) event
+                .getSource()).getValue();*/
 		refreshFields();
 
 	}
@@ -172,11 +157,6 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 		return remoteRepository;
 	}
 
-	@Override
-	public List<Repository> filter(Repository object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	public RepositoryType[] getTypeList() {
 		return RepositoryType.values();
@@ -199,6 +179,11 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 		}else {
 			this.remoteRepository = true;
 		}
+	}
+
+	@Override
+	public List<Repository> filter(Repository object) {
+		return null;
 	}
 	
 }

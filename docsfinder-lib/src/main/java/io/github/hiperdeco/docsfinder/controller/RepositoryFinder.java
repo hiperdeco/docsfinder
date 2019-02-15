@@ -15,11 +15,9 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
@@ -88,10 +86,8 @@ public class RepositoryFinder implements Serializable {
 			analyzer = new StandardAnalyzer();
 			//replace first character ? or *
 			search.setTerm(search.getTerm().replaceFirst("^[*|?]+", ""));
-			TopDocs hitsFile = null;
 			if(search.isFindPath()) {
 				IndexSearcher searchIndexFile = new IndexSearcher(reader);
-				Query queryFile = new TermQuery(new Term("path",search.getTerm()));
 				int count = reader.getDocCount("path");
 				
 				String termRegexFile = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
@@ -248,7 +244,6 @@ public class RepositoryFinder implements Serializable {
 		long count = 1;
 		for (String path: filesPathFound) {
 			if (path.toLowerCase().contains(term.toLowerCase())) {
-				//File f = new File(path);
 				ContentFoundVO item = new ContentFoundVO();
 				item.setId(count);
 				item.setPath(path);
@@ -269,12 +264,9 @@ public class RepositoryFinder implements Serializable {
 	}
 	
 	private String getIndexPath() {
-		String result = ConfigurationManager.getValue(this.repository.getId(), "INDEX_PATH");
-		if (result == null || result.isEmpty()) {
-			result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
-			if (!result.endsWith("/")) {
-				result += "/";
-			}
+		String result = Properties.get("indexPath", System.getProperty("java.io.tmpdir"));
+		if (!result.endsWith("/")) {
+			result += "/";
 		}
 		return 	result;
 	}

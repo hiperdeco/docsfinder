@@ -7,6 +7,7 @@
     <welcome-file>default.html</welcome-file>
     <welcome-file>default.htm</welcome-file>
     <welcome-file>index.xhtml</welcome-file>
+    <welcome-file>Search.xhtml</welcome-file>
   </welcome-file-list>
 <context-param>
     <param-name>javax.faces.PROJECT_STAGE</param-name>
@@ -59,5 +60,17 @@
       io.github.hiperdeco.docsfinder.servlet.IndexerJobServlet 
    </listener-class>
 </listener>
+<security-constraint>
+	<web-resource-collection>
+		<web-resource-name>DocsFinder Admin</web-resource-name>
+		<url-pattern>/admin/*</url-pattern>
+	</web-resource-collection>
+	<auth-constraint>
+		<role-name>admin</role-name>
+	</auth-constraint>
+</security-constraint>
+<security-role>
+	<role-name>admin</role-name>
+</security-role>
 
 </web-app>

@@ -15,7 +15,7 @@
   </context-param>
   <context-param>
     <param-name>primefaces.THEME</param-name>
-    <param-value>sunny</param-value>
+    <param-value>bootstrap</param-value>
   </context-param>
   <context-param>
     <param-name>primefaces.FONT_AWESOME</param-name>
@@ -69,6 +69,9 @@
 		<role-name>admin</role-name>
 	</auth-constraint>
 </security-constraint>
+<login-config>  
+    <auth-method>BASIC</auth-method>  
+  </login-config>  
 <security-role>
 	<role-name>admin</role-name>
 </security-role>

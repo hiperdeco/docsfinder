@@ -47,7 +47,7 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 				repo.setPassword("");
 			}
 		} catch (Exception e) {
-			 UIUtil.putMessage(FacesMessage.SEVERITY_INFO, "crud.list.title", "crud.list.norecords");
+			 UIUtil.putMessage(FacesMessage.SEVERITY_INFO, "crud.list.title", "crud.list.norows");
 		}
 		return this.list;
 	}
@@ -70,6 +70,7 @@ public class RepositoryMB extends AbstractCRUDMB<Repository> {
 				   	UIUtil.putMessage(FacesMessage.SEVERITY_ERROR, "error.title", "error.message");
 				}
 			}
+			objSelected = this.getObject();
 			super.create();
 			RepositoryJobManager.getInstance().addJob(objSelected);
 		}catch (Exception e) {

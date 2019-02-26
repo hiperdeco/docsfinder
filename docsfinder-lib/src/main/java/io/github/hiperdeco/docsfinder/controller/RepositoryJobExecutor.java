@@ -52,7 +52,6 @@ public class RepositoryJobExecutor  implements Job, Serializable {
 		    log.info("End of scheduled execution for: " + repoName);
 	    }catch(Exception e) {
 	    	log.error("Error to schedule execution for: "+ repoName, e);
-	    }finally {
 	    	repo = (Repository) JPAUtil.findById(Repository.class, repo.getId());
 	    	repo.setStatus(RepositoryStatus.ERROR);
 	    	JPAUtil.update(repo);

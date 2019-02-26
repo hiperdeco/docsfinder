@@ -11,27 +11,26 @@
 
 	<ui:define name="content">
 		<style type="text/css">
-			ul.striped-list {
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-				//max-width: 200px;
-			}
-			
-			ul.striped-list>li {
-				border-bottom: 1px solid rgb(221, 221, 221);
-				padding: 6px;
-			}
-			
-			ul.striped-list>li:nth-of-type(odd) {
-				background-color: #e9e9f9;
-			}
-			
-			ul.striped-list>li:last-child {
-				border-bottom: none;
-			}
+ul.striped-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0; //
+	max-width: 200px;
+}
 
-		</style>
+ul.striped-list>li {
+	border-bottom: 1px solid rgb(221, 221, 221);
+	padding: 6px;
+}
+
+ul.striped-list>li:nth-of-type(odd) {
+	background-color: #e9e9f9;
+}
+
+ul.striped-list>li:last-child {
+	border-bottom: none;
+}
+</style>
 		<script type="text/javascript">
 			//<![CDATA[
 			function start() {
@@ -47,88 +46,87 @@
 		<h:form id="frm" action="Search.xhtml">
 			<p:growl id="msgReturn" for="msgReturn" showSummary="true"
 				showDetail="true" />
-<div style="">
-			<h:panelGrid id="pnlSearch" columns="3" style="font-size:small">
+			<div style="">
+				<h:panelGrid id="pnlSearch" columns="3" style="font-size:small">
 
-				<p:outputLabel for="repo"
-					value="#{searchbundle['repository.label']}:" />
-				<p:selectOneMenu id="repo" required="true"
-					requiredMessage="#{searchbundle['repository.requiredMessage']}"
-					value="#{SearchMB.repositoryId}">
-					<f:selectItem noSelectionOption="true" />
-					<f:selectItems value="#{SearchMB.repositoryList}" var="item"
-						itemLabel="#{item.description}" itemValue="#{item.id}" />
-				</p:selectOneMenu>
-				<p:message for="repo" />
+					<p:outputLabel for="repo"
+						value="#{searchbundle['repository.label']}:" />
+					<p:selectOneMenu id="repo" required="true"
+						requiredMessage="#{searchbundle['repository.requiredMessage']}"
+						value="#{SearchMB.repositoryId}">
+						<f:selectItem noSelectionOption="true" />
+						<f:selectItems value="#{SearchMB.repositoryList}" var="item"
+							itemLabel="#{item.description}" itemValue="#{item.id}" />
+					</p:selectOneMenu>
+					<p:message for="repo" />
 
-				<p:outputLabel for="term" value="#{searchbundle['term.label']}:" />
-				<p:inputText id="term" required="true"
-					requiredMessage="#{searchbundle['term.requiredMessage']}"
-					value="#{SearchMB.form.term}" />
-				<p:message for="term" />
+					<p:outputLabel for="term" value="#{searchbundle['term.label']}:" />
+					<p:inputText id="term" required="true"
+						requiredMessage="#{searchbundle['term.requiredMessage']}"
+						value="#{SearchMB.form.term}" />
+					<p:message for="term" />
 
-				<p:outputLabel for="findPath"
-					value="#{searchbundle['findPath.label']}" />
-				<p:selectBooleanCheckbox id="findPath" value="#{SearchMB.form.findPath}" />
-				<p:message for="findPath" />
-<p:row><p:commandButton id="search" value="#{searchbundle['search.button']}"
-				  action="#{SearchMB.find}"  update="frm"
-			/>
-			<p:commandButton id="clear" value="#{searchbundle['clear.button']}"
-				immediate="true" process="@this" update="frm"
-				action="#{SearchMB.clear}" />
- </p:row>
-
-			</h:panelGrid>
-</div>
-			<p:remoteCommand name="find" id="find" action="#{SearchMB.find}" 
-				update="frm" />			 
-	
-<div style="">
-			<p:blockUI block="listContentsFound" trigger="frm:find" id="listContentsLoading" style="font-size:small">
-				<p:graphicImage name="/images/ajaxloading.gif" /><br/>
-				<h:outputText value="#{searchbundle['search.finding']}"/>
-			</p:blockUI>
-</div>
-
-<div style="">
-			
-			<p:dataList id="listContentsFound" value="#{SearchMB.contentsFound}"
-				var="item" rows="25" scrollable="true" paginator="true" type="definition"
-				rowKey="#{item.id}" rendered="#{SearchMB.listContentsFoundVisible}" style="font-size:small" >
-				<f:facet name="header">
-					#{searchbundle['contentsFound.title']}
-				</f:facet>
-				<h:panelGrid id="pnlSearch" cols="1"  style="font-size:small;width:100%;background-color:white;border-style: solid;border-width: 2px">
+					<p:outputLabel for="findPath"
+						value="#{searchbundle['findPath.label']}" />
+					<p:selectBooleanCheckbox id="findPath"
+						value="#{SearchMB.form.findPath}" />
+					<p:message for="findPath" />
 					<p:row>
-					<b>#{searchbundle['contentsFound.type']}:</b> #{item.type}
+						<p:commandButton id="search"
+							value="#{searchbundle['search.button']}"
+							action="#{SearchMB.find}" update="frm" />
+						<p:commandButton id="clear"
+							value="#{searchbundle['clear.button']}" immediate="true"
+							process="@this" update="frm" action="#{SearchMB.clear}" />
 					</p:row>
-					<p:row>
-						<p:column>
-							<p:graphicImage name="/images/filetypes/#{item.extension}.png" />
-							<p:commandLink 
-							ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"	>
-							<f:param name="fileName" value="#{item.fileName}"/>
-							<f:param name="filePath" value="#{item.path}"/>
-							<f:param name="fileType" value="#{item.type}"/>
-							<h:outputText escape="false" value="#{item.pathDescription}"/>
-							<p:fileDownload value="#{SearchMB.fileDownload}" />
-							</p:commandLink>
-						</p:column>
-						
-						
-					</p:row>
-					<p:row>
-				<p:outputPanel scape="false" style="border-style: dotted" rendered="#{! empty item.contentString}" >
-                      	<h:outputText escape="false" value="#{item.contentString}" />
-				</p:outputPanel>
-					</p:row>
+
 				</h:panelGrid>
-			<br/>
-				
-			</p:dataList>
-			
-</div>
+			</div>
+
+			<div style="">
+				<p:blockUI block="listContentsFound" trigger="frm:search"
+					id="listContentsLoading" style="font-size:small">
+					<p:graphicImage name="/images/ajaxloading.gif" />
+					<br />
+					<h:outputText value="#{searchbundle['search.finding']}" />
+				</p:blockUI>
+			</div>
+
+			<div style="">
+
+				<p:dataList id="listContentsFound" value="#{SearchMB.contentsFound}"
+					var="item" rows="25" scrollable="true" paginator="true"
+					type="definition" rowKey="#{item.id}"
+					rendered="#{SearchMB.listContentsFoundVisible}"
+					style="font-size:small" styleClass="pnlFound">
+					<f:facet name="header">
+						#{searchbundle['contentsFound.title']}
+					</f:facet>
+					<p:panel id="pnlFound" cols="1" toggleable="true" toggleSpeed="500"
+						collapsed="true">
+						<f:facet name="header">
+							<b>#{searchbundle['contentsFound.type']}:</b> #{item.type}
+						<br />
+							<p:graphicImage name="/images/filetypes/#{item.extension}.png" />
+							<p:commandLink ajax="false"
+								onclick="PrimeFaces.monitorDownload(start, stop);">
+								<f:param name="fileName" value="#{item.fileName}" />
+								<f:param name="filePath" value="#{item.path}" />
+								<f:param name="fileType" value="#{item.type}" />
+								<h:outputText escape="false" value="#{item.pathDescription}" />
+								<p:fileDownload value="#{SearchMB.fileDownload}" />
+							</p:commandLink>
+
+						</f:facet>
+
+						<p:outputPanel scape="false" style="border-style: dotted"
+							rendered="#{! empty item.contentString}">
+							<h:outputText escape="false" value="#{item.contentString}" />
+						</p:outputPanel>
+					</p:panel>
+				</p:dataList>
+
+			</div>
 			<p:dialog modal="true" widgetVar="statusDialog" header="Status"
 				draggable="false" closable="false" resizable="false">
 				<p:graphicImage name="/images/ajaxloading.gif" />
@@ -136,9 +134,6 @@
 
 
 		</h:form>
-
-
-
 
 	</ui:define>
 

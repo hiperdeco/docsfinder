@@ -93,8 +93,6 @@
 			</f:facet>
 			<p:ajax event="rowSelect" listener="#{RepositoryMB.onRowSelect}"
 				update=":frm" />
-			<p:ajax event="rowUnselect" listener="#{RepositoryMB.onRowUnSelect}"
-				update=":frm" />
 			<p:column headerText="#{repobundle['id.label']}">
 				<h:outputText value="#{item.id}"></h:outputText>
 			</p:column>

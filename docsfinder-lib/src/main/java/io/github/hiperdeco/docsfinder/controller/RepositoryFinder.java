@@ -181,23 +181,24 @@ public class RepositoryFinder implements Serializable {
 	            	}
 	            		
 	            }
-	            
-	            ContentFoundVO found = new ContentFoundVO();
-	            found.setPath(path);
-	            found.setPathDescription(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
-	            found.setType(type);
-	            found.setContent(textMatchs);
-	            found.setExtension(extension);
-	            found.setFileName(fileName);
- 
-	            if (search.isFindPath() && result.contains(found)) {
-	            	result.remove(found);
+	            if (! textMatchs.isEmpty()) {
+		            ContentFoundVO found = new ContentFoundVO();
+		            found.setPath(path);
+		            found.setPathDescription(path.replace(repository.getLocalDirectory(), "").replaceAll("(?i)("+termRegex+")", "<b>$1</b>"));
+		            found.setType(type);
+		            found.setContent(textMatchs);
+		            found.setExtension(extension);
+		            found.setFileName(fileName);
+	 
+		            if (search.isFindPath() && result.contains(found)) {
+		            	result.remove(found);
+		            }
+		            
+		            result.add(found);
 	            }
 	            
-	            result.add(found);
-	            
 	        }
-			log.info(result.size() + " results found.");
+			log.info("Term: " + search.getTerm() + " - "+ result.size() + " results found.");
 		}catch(Exception e) {
 			throw e;
 		}finally {

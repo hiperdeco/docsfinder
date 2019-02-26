@@ -45,7 +45,6 @@ public class SearchMB {
 	private List<ContentFoundVO> filesFound;
 	private List<ContentFoundVO> contentsFound;
 
-	private boolean listFilesFoundVisible = false;
 	private boolean listContentsFoundVisible = false;
 
 	private long repositoryId;
@@ -63,18 +62,6 @@ public class SearchMB {
 		return "";
 	}
 
-	public String findFiles() {
-		if(! this.form.isFindPath()) return null;
-		try {
-			Thread.currentThread().sleep(3000);
-			listFilesFoundVisible = true;
-		} catch (InterruptedException e) {
-			
-			e.printStackTrace();
-		}
-		return "";
-	}
-
 	public String find() {
 		List<ContentFoundVO> list = new ArrayList<ContentFoundVO>();
 		try {
@@ -85,10 +72,10 @@ public class SearchMB {
 			log.error(e.getMessage(),e);
 		}
 		this.contentsFound = list;
-		if (list.size()>0) {
+		if (!list.isEmpty()) {
 			listContentsFoundVisible = true;
 		}else {
-			 UIUtil.putMessage(FacesMessage.SEVERITY_INFO, "crud.list.title", "crud.list.norecords");
+			 UIUtil.putMessage(FacesMessage.SEVERITY_INFO, "crud.list.search", "crud.list.notfound");
 			listContentsFoundVisible = false;
 		}
 		return "";
@@ -104,7 +91,6 @@ public class SearchMB {
 		this.fileFoundSelected = null;
 		this.contentFoundSelected = null;
 		this.listContentsFoundVisible = false;
-		this.listFilesFoundVisible = false;
 
 	}
 
@@ -215,14 +201,6 @@ public class SearchMB {
 	public String getAllContentHTML() {
 		return FileUtil.getContentsHTML(this.repositoryId, this.filePreviewSelected.getPath());
 
-	}
-
-	public boolean isListFilesFoundVisible() {
-		return listFilesFoundVisible;
-	}
-
-	public void setListFilesFoundVisible(boolean listFilesFoundVisible) {
-		this.listFilesFoundVisible = listFilesFoundVisible;
 	}
 
 	public boolean isListContentsFoundVisible() {

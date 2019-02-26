@@ -8,7 +8,7 @@ public class SearchVO implements Serializable{
 
 	private String Term;
 	
-	private boolean findPath = false;
+	private boolean findPath = true;
 	
 	private String[] types;
 	

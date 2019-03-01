@@ -5,13 +5,17 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.pt.PortugueseAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -82,15 +86,24 @@ public class RepositoryFinder implements Serializable {
 				}
 				throw new FinderException(e,Type.REPOSITORY_ERROR);
 			}
-			
-			analyzer = new StandardAnalyzer();
+          
+           	analyzer = new StandardAnalyzer();
+          
+            
 			//replace first character ? or *
 			search.setTerm(search.getTerm().replaceFirst("^[*|?]+", ""));
 			if(search.isFindPath()) {
 				IndexSearcher searchIndexFile = new IndexSearcher(reader);
 				int count = reader.getDocCount("path");
 				
-				String termRegexFile = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+				String termRegexFile = search.getTerm();
+				if (! (termRegexFile.indexOf("\"") != termRegexFile.lastIndexOf("\""))) { 
+					termRegexFile = termRegexFile.replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+				}else{
+					termRegexFile = termRegexFile.replaceAll("\"", "");
+				}
+				termRegexFile = removeDiacriticalMarks(termRegexFile);
+				
 				String pattern = "^.*(" + termRegexFile + ").*$";
 				 // Create a Pattern object
 	            Pattern rf = Pattern.compile(pattern,Pattern.MULTILINE| Pattern.CASE_INSENSITIVE);
@@ -134,18 +147,24 @@ public class RepositoryFinder implements Serializable {
 			//org.apache.lucene.search.BooleanQuery (mais de uma palavra)
 			
 			String termRegex = search.getTerm();
-			switch (query.getClass().getName()) {
-			case "org.apache.lucene.search.WildcardQuery":
-				termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
-				break;
-			case "org.apache.lucene.search.BooleanQuery":
-				termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
-				break;
-			case "org.apache.lucene.search.PrefixQuery":
-				termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
-				break;
+			//considera que as apas duplas sao um termo unico.
+			if (! (termRegex.indexOf("\"") != termRegex.lastIndexOf("\""))) {
+				switch (query.getClass().getName()) {
+				case "org.apache.lucene.search.WildcardQuery":
+					termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+					break;
+				case "org.apache.lucene.search.BooleanQuery":
+					termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+					break;
+				case "org.apache.lucene.search.PrefixQuery":
+					termRegex = search.getTerm().replaceAll("[*,?,+,-]", "|").replaceAll(" ", "|");
+					break;
+				}
+			}else{
+				termRegex = search.getTerm().replaceAll("\"", "");
 			}
-			
+			termRegex = removeDiacriticalMarks(termRegex);
+
 			String pattern = "^.*(" + termRegex + ").*$";
 			 // Create a Pattern object
             Pattern r = Pattern.compile(pattern,Pattern.MULTILINE| Pattern.CASE_INSENSITIVE);
@@ -164,7 +183,7 @@ public class RepositoryFinder implements Serializable {
 	            String fileName = docx.get("fileName");
 	            
 	            //get the matches
-	            Matcher m = r.matcher(text);
+	            Matcher m = r.matcher(removeDiacriticalMarks(text));
 	            List<String> textMatchs = new ArrayList<String>();
 	            int maxLines = Integer.parseInt(System.getProperty("maxLines","10"));
 	            int count = 0;
@@ -270,5 +289,10 @@ public class RepositoryFinder implements Serializable {
 			result += "/";
 		}
 		return 	result;
+	}
+	
+	public static String removeDiacriticalMarks(String string) {
+	    return Normalizer.normalize(string, Form.NFD)
+	        .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
 	}
 }

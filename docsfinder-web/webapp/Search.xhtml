@@ -102,7 +102,7 @@ ul.striped-list>li:last-child {
 					<f:facet name="header">
 						#{searchbundle['contentsFound.title']}
 					</f:facet>
-					<p:panel id="pnlFound" cols="1" toggleable="true" toggleSpeed="500"
+					<p:panel id="pnlFound" cols="1" toggleable="#{! empty item.contentString}" toggleSpeed="500"
 						collapsed="true">
 						<f:facet name="header">
 							<b>#{searchbundle['contentsFound.type']}:</b> #{item.type}
